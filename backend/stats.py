@@ -8,10 +8,10 @@ protocol_names = {
     17: 'UDP',
     41: 'IPv6',
     89: 'OSPF',
-}
+}    
 
 # Get top 10 src IPs
-# Results format: [(src_ip, number of occurrences), ...]
+# Results format: [{src_ip: number of occurrences}, ...]
 def top_10_ips():
     query = (
         select(packet_table.c.src_ip, func.count().label('total'))
@@ -21,10 +21,13 @@ def top_10_ips():
     )
     with engine.connect() as conn:
         results = conn.execute(query).fetchall()
-    return results
+    formatted_results = []
+    for r in results:
+        formatted_results.append({'ip': r[0], 'total':r[1]})
+    return formatted_results
 
 # Get number of packets using each protocol
-# Results format: [(protocol (string), number of packets), ...]
+# Results format: [{protocol (string): number of packets}, ...]
 def protocol_breakdown():
     query = (
         select(packet_table.c.protocol, func.count().label('total'))
@@ -34,12 +37,12 @@ def protocol_breakdown():
         results = conn.execute(query).fetchall()
     formatted_results = []
     for r in results:
-        formatted_results.append((protocol_names.get(r[0], 'Unknown'), r[1]))
+        formatted_results.append({'protocol':protocol_names.get(r[0], 'Unknown'), 'total':r[1]})
     return formatted_results
 
 
 # Get number of packets sent each 
-# Results format: [(time, number of packets), ...]
+# Results format: [{time: number of packets}, ...]
 def packets_per_minute():
     query = (
         select(func.strftime('%Y-%m-%d %H:%M', packet_table.c.timestamp), func.count().label('packets_per_min'))
@@ -48,7 +51,10 @@ def packets_per_minute():
     )
     with engine.connect() as conn:
         results = conn.execute(query).fetchall()
-    return results
+    formatted_results = []
+    for r in results:
+        formatted_results.append({'time':r[0], 'total':r[1]})
+    return formatted_results
 
 # Get total number of packets sent during captures
 def total_packet_count():
@@ -89,15 +95,26 @@ def recent_packets(limit=100):
 def print_all_results():
     print("=== Top 10 IPs ===")
     top_ips = top_10_ips()
-    for ip, num in top_ips:
-        print(ip, "-", num, "packets")
+    for row in top_ips:
+        print(f'{row['ip']} - {row['total']} packets')
 
     print("\n=== Protocol Breakdown ===")
     protocols = protocol_breakdown()
-    for protocol, num in protocols:
-        print(protocol, "-", num, "packets")
+    for row in protocols:
+        print(f'{row['protocol']} - {row['total']} packets')
 
     print("\n=== Packets per Minute ===")
     intervals = packets_per_minute()
-    for time, num in intervals:
-        print(time, "-", num, "packets")
+    for row in intervals:
+        print(f'{row['time']} - {row['total']} packets')
+
+    print("\n=== Total Packets ===")
+    print(total_packet_count())
+
+    print("\n=== Average Packet Size ===")
+    print(average_packet_size())
+
+    print("\n=== Recent Packets ===")
+    recent = recent_packets()
+    for row in recent:
+        print(f'{protocol_names[row['protocol']]} {row['src_ip']} → {row['dst_ip']}, size: {row['size']} @ {row['timestamp']}')
