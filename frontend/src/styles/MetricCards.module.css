@@ -1,0 +1,41 @@
+/* ─── grid layout ─────────────────────────────────── */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 1rem;
+    font-family: monospace;
+}
+
+/* ─── card ────────────────────────────────────────── */
+.card {
+    background: #0d1220;
+    border: 0.5px solid #1e2a40;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+}
+
+.label {
+    font-size: 10px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+}
+
+.value {
+    font-size: 22px;
+    font-weight: 500;
+}
+
+.sub {
+    font-size: 10px;
+    color: #546e8a;
+    margin-top: 2px;
+}
+
+/* ─── accent colors ───────────────────────────────── */
+.accentBlue   { color: #4fc3f7; }
+.accentGreen  { color: #22c55e; }
+.accentAmber  { color: #f59e0b; }
+.accentPurple { color: #a78bfa; }

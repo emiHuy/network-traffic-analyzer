@@ -1,0 +1,79 @@
+/* ─── panel container ─────────────────────────────── */
+.panel {
+    background: #0d1220;
+    border: 0.5px solid #1e2a40;
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-family: monospace;
+}
+
+/* ─── section heading ─────────────────────────────── */
+.title {
+    font-size: 10px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.75rem;
+}
+
+/* ─── layout ──────────────────────────────────────── */
+.wrap {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+/* ─── legend ──────────────────────────────────────── */
+.legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* base row — total variant adds divider above */
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.legendItemTotal {
+    margin-top: 4px;
+    border-top: 0.5px solid #1e2a40;
+    padding-top: 6px;
+}
+
+/* color dot — background set inline per protocol */
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* packet count value */
+.val {
+    margin-left: auto;
+    color: #e2e8f0;
+    font-weight: 500;
+    padding-left: 12px;
+}
+
+/* empty state */
+.empty {
+    font-size: 11px;
+    color: #546e8a;
+}
+
+/* ─── recharts tooltip ────────────────────────────── */
+.customTooltip {
+    background: #0d1220;
+    border: 0.5px solid #1e2a40;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-family: monospace;
+    color: #e2e8f0;
+}

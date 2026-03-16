@@ -1,0 +1,95 @@
+/* ─── panel container ─────────────────────────────── */
+.bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: #0d1220;
+    border: 0.5px solid #1e2a40;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-family: monospace;
+}
+
+/* ─── logo ────────────────────────────────────────── */
+.logo {
+    font-size: 13px;
+    font-weight: 500;
+    color: #4fc3f7;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* muted suffix of logo text */
+.logoMuted {
+    color: #546e8a;
+}
+
+/* ─── capture status + timer ──────────────────────── */
+.status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: #546e8a;
+}
+
+/* animated dot shown while capturing */
+.pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: inline-block;
+    margin-right: 5px;
+    animation: pulse 1.5s infinite;
+}
+
+/* elapsed capture time display */
+.timer {
+    font-size: 13px;
+    color: #e2e8f0;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+/* ─── buttons ─────────────────────────────────────── */
+.btns {
+    display: flex;
+    gap: 8px;
+}
+
+/* shared base — color overridden per variant below */
+.btnBase {
+    font-family: monospace;
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 4px;
+    border: 0.5px solid;
+    cursor: pointer;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+.btnStart {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: #22c55e;
+    color: #22c55e;
+}
+
+.btnStop {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* applied when button action is unavailable */
+.btnDisabled {
+    opacity: 0.4;
+}
+
+/* ─── animations ──────────────────────────────────── */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
