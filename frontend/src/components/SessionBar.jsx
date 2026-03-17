@@ -1,6 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from '../styles/SessionBar.module.css';
 
+function formatTimestamp(ts) {
+  if (!ts) return '—';
+  try {
+    return new Date(ts).toLocaleDateString('en-CA', {
+      month: 'short',
+      day: 'numeric',
+    });
+  } catch {
+    return ts;
+  }
+}
+
 export default function SessionBar({ sessions = [], activeSessionId, onSelect, onCreate, onDelete }) {
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -54,11 +66,11 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
                 >
                   <div className={styles.itemLeft}>
                     {/* active dot turns green for selected session */}
-                    <div className={`${styles.dot} ${sess.id === activeSessionId ? styles.activeDot : ''}`} />
-                    <span className={`${styles.itemName} ${sess.id === activeSessionId ? styles.activeItemName : ''}`}>
+                    <div className={`${styles.dot} ${sess.id === activeSessionId ? styles.dotActive : ''}`} />
+                    <span className={`${styles.itemName} ${sess.id === activeSessionId ? styles.itemNameActive : ''}`}>
                       {sess.name}
                     </span>
-                    <span className={styles.itemMeta}>{sess.packet_count ?? 0} pkts · {sess.created_at}</span>
+                    <span className={styles.itemMeta}>{sess.packet_count ?? 0} pkts · {formatTimestamp(sess.created_at)}</span>
                   </div>
                   <button
                     className={styles.delBtn}
@@ -90,7 +102,7 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
       {/* aggregate stats across all sessions */}
       <div className={styles.right}>
         <span className={styles.meta}>
-          all sessions: <span className={styles.metaVal}>{totalPackets.toLocaleString()} pkts</span>
+          all sessions: <span className={`${styles.metaVal} ${styles.blue}`}>{totalPackets.toLocaleString()} pkts</span>
         </span>
         <div className={styles.divider} />
         <span className={styles.meta}>

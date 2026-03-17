@@ -77,10 +77,20 @@
     color: #22c55e;
 }
 
+.btnStart:hover {
+    border-color: #56e68b;
+    color: #56e68b;
+}
+
 .btnStop {
     background: rgba(239, 68, 68, 0.1);
     border-color: #ef4444;
     color: #ef4444;
+}
+
+.btnStop:hover {
+    border-color: #ff6565;
+    color: #ff6565;
 }
 
 /* applied when button action is unavailable */

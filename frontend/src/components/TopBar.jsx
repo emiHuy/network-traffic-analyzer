@@ -7,7 +7,7 @@ function fmt(s) {
   return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 }
 
-export default function TopBar({ isCapturing, onStart, onStop }) {
+export default function TopBar({ sessionId, isCapturing, onStart, onStop }) {
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef(null);
 
@@ -41,7 +41,7 @@ export default function TopBar({ isCapturing, onStart, onStop }) {
 
       <div className={styles.btns}>
         <button
-          className={`${styles.btnBase} ${styles.btnStart} ${isCapturing ? styles.btnDisabled : ''}`}
+          className={`${styles.btnBase} ${styles.btnStart} ${isCapturing || !sessionId ? styles.btnDisabled : ''}`}
           onClick={onStart}
           disabled={isCapturing}
         >

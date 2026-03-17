@@ -45,8 +45,10 @@ export default function Dashboard() {
   }
 
   async function onCreate(name) {
-    await createSession(name);
+    const { session_id } = await createSession(name);
     setSessions(await fetchSessions());
+    setSessionId(session_id);
+    setStats(await fetchStats(session_id));
   }
 
   async function onDelete(id) {
@@ -70,7 +72,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <TopBar isCapturing={capturing} onStart={onStart} onStop={onStop}/>
+      <TopBar sessionId={sessionId} isCapturing={capturing} onStart={onStart} onStop={onStop}/>
       <SessionBar sessions={sessions} activeSessionId={sessionId} onSelect={onSelect} onCreate={onCreate} onDelete={onDelete}/>
       <MetricCards totalPackets={stats?.total_packets} avgPacketSize={stats?.average_packet_size} packetsPerMin={stats?.packets_per_minute?.at(-1)?.total} activeHosts={stats?.active_hosts}/>
       <div className={styles.grid2}>
