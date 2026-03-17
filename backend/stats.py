@@ -108,3 +108,22 @@ def recent_packets(session_id: int, limit=100):
         }
         for r in results
     ]
+
+def get_all_stats(session_id: int, limit=100):
+    # Result format:
+    # {
+    #   'top_10_ips': [...],
+    #   'protocol_breakdown': [...],
+    #   'packets_per_minute': [...],
+    #   'total_packets': int,
+    #   'average_packet_size': float,
+    #   'recent_packets': [...]
+    # }
+    return {
+        'top_10_ips':          top_10_ips(session_id),
+        'protocol_breakdown':  protocol_breakdown(session_id),
+        'packets_per_minute':  packets_per_minute(session_id),
+        'total_packets':       total_packet_count(session_id),
+        'average_packet_size': average_packet_size(session_id),
+        'recent_packets':      recent_packets(session_id, limit),
+    }

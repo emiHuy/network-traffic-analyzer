@@ -57,3 +57,6 @@ def stop_capture():
     stop_event.set()
     active_session_id = None
     return {'stop_timestamp': datetime.now().isoformat()}
+
+def get_capture_status():
+    return active_session_id

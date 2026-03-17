@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from stats import top_10_ips, protocol_breakdown, packets_per_minute, total_packet_count, average_packet_size, recent_packets
-from capture import start_capture, stop_capture
+import asyncio
+from stats import get_all_stats
+from capture import start_capture, stop_capture, get_capture_status
 from store import create_session, clear_session, get_all_sessions
 
 app = FastAPI()
@@ -55,14 +56,7 @@ def get_stats(session_id: int, limit: int = 100):
     #   'average_packet_size': float,
     #   'recent_packets': [...]
     # }
-    return {
-        'top_10_ips':          top_10_ips(session_id),
-        'protocol_breakdown':  protocol_breakdown(session_id),
-        'packets_per_minute':  packets_per_minute(session_id),
-        'total_packets':       total_packet_count(session_id),
-        'average_packet_size': average_packet_size(session_id),
-        'recent_packets':      recent_packets(session_id, limit),
-    }
+    return get_all_stats(session_id, limit)
 
 
 @app.post('/capture/start/{session_id}')
@@ -83,3 +77,21 @@ def capture_stop():
         return stop_capture()
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get('/capture/status')
+def capture_status():
+    status = get_capture_status()
+    return {'active_session': status}
+
+
+# Web socket for live dashboard updates
+@app.websocket('/ws/{session_id}')
+async def websocket_endpoint(ws: WebSocket, session_id: int, limit: int = 100):
+    await ws.accept()
+    try:
+        while True:
+            await ws.send_json(get_all_stats(session_id, limit))
+            await asyncio.sleep(2)
+    except:
+        return
