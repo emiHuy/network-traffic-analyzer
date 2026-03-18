@@ -23,6 +23,12 @@
     margin-bottom: 0.75rem;
 }
 
+.titleRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .packetCount {
     font-size: 10px;
     color: #546e8a;
@@ -53,6 +59,24 @@
     border-bottom: 0.5px solid #111827;
 }
 
+/* collapse button */
+.collapseBtn {
+    font-size: 9px;
+    font-family: monospace;
+    color: #546e8a;
+    background: transparent;
+    border: 0.5px solid #1e2a40;
+    border-radius: 3px;
+    padding: 2px 8px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+}
+
+.collapseBtn:hover {
+    color: #4fc3f7;
+    border-color: #4fc3f7;
+}
+
 /* removes divider from last row */
 .rowLast { border-bottom: none; }
 
@@ -71,6 +95,32 @@
     font-size: 11px;
     color: #546e8a;
     padding: 8px 0;
+}
+
+/* ─── collapsed state ─────────────────────────────────── */
+.more {
+    text-align: center;
+    font-size: 10px;
+    color: #2f3f5b;
+    padding: 4px 0;
+    cursor: pointer;
+    letter-spacing: 0.2em;
+}
+
+.more:hover {
+    color: #4fc3f7;
+}
+
+/* ─── arrows ─────────────────────────────────── */
+.arrow {
+    font-size: 8px;
+    color: #546e8a;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.arrowCollapsed {
+    transform: rotate(180deg);
 }
 
 /* ─── protocol badges ─────────────────────────────── */

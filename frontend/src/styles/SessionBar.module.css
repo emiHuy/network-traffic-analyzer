@@ -71,6 +71,12 @@
 .arrow {
     font-size: 8px;
     color: #546e8a;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.arrowOpen {
+    transform: rotate(180deg);
 }
 
 .menu {
@@ -82,6 +88,16 @@
     border-radius: 8px;
     min-width: 240px;
     z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.menuOpen {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
 
 /* base row — variants below */

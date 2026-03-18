@@ -53,11 +53,11 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
         <div ref={wrapRef} style={{ position: "relative" }}>
           <div className={styles.dropBtn} onClick={() => setOpen((o) => !o)}>
             <span>{active?.name ?? "no session"}</span>
-            <span className={styles.arrow}>{open ? "▲" : "▼"}</span>
+            <span className={`${styles.arrow} ${open ? styles.arrowOpen : ''}`}>▼</span>
           </div>
 
-          {open && (
-            <div className={styles.menu}>
+          {(
+            <div className={`${styles.menu} ${open ? styles.menuOpen : ''}`}>
               {sessions.map((sess, i) => (
                 <div
                   key={sess.id}
