@@ -25,19 +25,22 @@ function ProtoBadge({ protocol }) {
 function formatTimestamp(ts) {
   if (!ts) return '—';
   try {
-    return new Date(ts).toLocaleTimeString('en-CA', {
+    const d = new Date(ts);
+    const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const time = d.toLocaleTimeString('en-CA', {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
       fractionalSecondDigits: 3,
       hour12: false,
     });
+    return `${date} ${time}`;
   } catch {
     return ts;
   }
 }
 
-export default function PacketFeed({ data = [], limit = 18 }) {
+export default function PacketFeed({ data = [], limit = 18, sessionId, onSearch}) {
   const [collapsed, setCollapsed] = useState(false);
   // cap rows shown to limit
   const rows = (collapsed ? data.slice(0, COLLAPSED_LIMIT) : data.slice(0, limit));
@@ -49,6 +52,7 @@ export default function PacketFeed({ data = [], limit = 18 }) {
         <div className={styles.title}>live packet feed</div>
         <div className={styles.titleRight}>
           <span className={styles.packetCount}>most recent {data.length} packets</span>
+          <button className={styles.collapseBtn} onClick={onSearch}>⌕ search</button>
           <button className={styles.collapseBtn} onClick={() => setCollapsed(c => !c)}>
             <span className={`${styles.arrow} ${collapsed ? styles.arrowCollapsed : ''}`}>▲</span>
           </button>

@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { 
   startCapture, stopCapture, subscribeToStats, 
   fetchSessions, createSession, deleteSession,
-  fetchStats, exportSession
+  fetchStats, fetchAllPackets, exportSession
 } from '../api/client.js';
 
 import TopBar from './TopBar.jsx';
@@ -12,6 +12,7 @@ import MetricCards from './MetricsCards.jsx';
 import TopIPs from './TopIps.jsx';
 import ProtocolBreakdown from './ProtocolBreakdown.jsx';
 import PacketFeed from './PacketFeed.jsx';
+import PacketSearch from './PacketSearch.jsx';
 
 import styles from '../styles/Dashboard.module.css'
 
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);          // stats for selected session
   const [capturing, setCapturing] = useState(false); // whether live capture is active
   const [error, setError] = useState(null);          // error
+  const [searching, setSearching] = useState(false); // search
   
   // Holds cleanup function for active WebSocket subscription
   const wsCleanup = useRef(null);
@@ -115,7 +117,14 @@ export default function Dashboard() {
         <TopIPs data={stats?.top_10_ips}/>
         <ProtocolBreakdown data={stats?.protocol_breakdown}/>
       </div>
-      <PacketFeed data={stats?.recent_packets}/>
+      <PacketFeed data={stats?.recent_packets} sessionId={sessionId} onSearch={setSearching}/>
+      {searching && sessionId && (
+        <PacketSearch
+          sessionId={sessionId}
+          onClose={() => setSearching(false)}
+          fetchAllPackets={fetchAllPackets}
+        />
+      )}
     </div>
   )
 }

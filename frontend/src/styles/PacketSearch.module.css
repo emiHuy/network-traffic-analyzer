@@ -1,0 +1,261 @@
+/* ─── overlay ─────────────────────────────────────── */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ─── modal ───────────────────────────────────────── */
+.modal {
+    background: #0d1220;
+    border: 0.5px solid #1e2a40;
+    border-radius: 10px;
+    width: 860px;
+    max-width: 95vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    font-family: monospace;
+    overflow: hidden;
+}
+
+/* ─── header ──────────────────────────────────────── */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-bottom: 0.5px solid #1e2a40;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 10px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.headerRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.count {
+    font-size: 10px;
+    color: #546e8a;
+}
+
+.closeBtn {
+    font-size: 10px;
+    color: #374151;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: monospace;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.closeBtn:hover {
+    color: rgb(241, 40, 40);
+    background: rgba(241, 40, 40, 0.1);
+}
+
+/* ─── search bar row ──────────────────────────────── */
+.searchRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.75rem 1rem;
+    border-bottom: 0.5px solid #1e2a40;
+    flex-shrink: 0;
+}
+
+.globalInput {
+    flex: 1;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 0.5px solid #1e2a40;
+    background: #151d2e;
+    color: #e2e8f0;
+    outline: none;
+}
+
+.globalInput:focus {
+    border-color: #4fc3f7;
+}
+
+.fieldToggle {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 0.5px solid #1e2a40;
+    background: transparent;
+    color: #546e8a;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+}
+
+.fieldToggle:hover, .fieldToggleActive {
+    border-color: #4fc3f7;
+    color: #4fc3f7;
+    background: rgba(79, 195, 247, 0.05);
+}
+
+.clearBtn {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 5px 10px;
+    border-radius: 4px;
+    border: 0.5px solid #1e2a40;
+    background: transparent;
+    color: #546e8a;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+}
+
+.clearBtn:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(241, 40, 40, 0.05);
+}
+
+/* ─── per-field filters ───────────────────────────── */
+.fields {
+    display: flex;
+    gap: 8px;
+    padding: 0.6rem 1rem;
+    border-bottom: 0.5px solid #1e2a40;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
+.fieldGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 100px;
+}
+
+.fieldLabel {
+    font-size: 9px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.fieldInput {
+    font-family: monospace;
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 0.5px solid #1e2a40;
+    background: #151d2e;
+    color: #94a3b8;
+    outline: none;
+}
+
+.fieldInput:focus {
+    border-color: #4fc3f7;
+}
+
+.fieldSelect {
+    font-family: monospace;
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 0.5px solid #1e2a40;
+    background: #151d2e;
+    color: #94a3b8;
+    outline: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.fieldSelect:focus {
+    border-color: #4fc3f7;
+}
+
+/* ─── table ───────────────────────────────────────── */
+.tableWrap {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.table thead tr {
+    position: sticky;
+    top: 0;
+    background: #0d1220;
+    border-bottom: 0.5px solid #1e2a40;
+}
+
+.table th {
+    font-size: 9px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 8px 1rem;
+    text-align: left;
+    font-weight: normal;
+}
+
+.table tbody tr {
+    border-bottom: 0.5px solid #111827;
+}
+
+.table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background: rgba(200, 200, 200, 0.03);
+}
+
+.table td {
+    padding: 5px 1rem;
+    color: #94a3b8;
+}
+
+.cell {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 160px;
+}
+
+.ts {
+    color: #546e8a;
+}
+
+/* ─── badge ───────────────────────────────────────── */
+.badge {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* ─── empty state ─────────────────────────────────── */
+.empty {
+    font-size: 11px;
+    color: #546e8a;
+    padding: 2rem 1rem;
+    text-align: center;
+}

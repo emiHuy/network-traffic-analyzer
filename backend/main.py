@@ -6,7 +6,7 @@ import asyncio
 
 from store import create_session, clear_session, get_all_sessions
 from capture import start_capture, stop_capture, get_capture_status
-from stats import get_all_stats
+from stats import get_all_stats, get_packets
 from export import export_csv, export_excel
 
 app = FastAPI()
@@ -91,6 +91,12 @@ def get_stats(session_id: int, limit: int = 18):
     #   'active_hosts': int
     # }
     return get_all_stats(session_id, limit)
+
+
+@app.get('/packets/{session_id}')
+def get_all_packets(session_id: int):
+    """Return all packets for a session in ascending timestamp order."""
+    return get_packets(session_id, limit=None, desc=False)
 
 
 @app.get('/export/{session_id}/csv')

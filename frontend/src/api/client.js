@@ -39,6 +39,11 @@ async function fetchStats(sessionId, limit=18) {
     return res.json();
 }
 
+async function fetchAllPackets(sessionId) {
+    const res = await fetch(`${API}/packets/${sessionId}`);
+    return res.json();
+}
+
 async function exportSession(sessionId, format) {
     window.open(`${API}/export/${sessionId}/${format}`, '_blank');
 }
@@ -65,4 +70,15 @@ function subscribeToStats(sessionId, onData) {
     return () => ws.close();
 }
 
-export { fetchSessions, createSession, deleteSession, fetchStats, startCapture, stopCapture, fetchCaptureStatus, exportSession, subscribeToStats };
+export { 
+    fetchSessions, 
+    createSession, 
+    deleteSession,
+    startCapture, 
+    stopCapture, 
+    fetchCaptureStatus, 
+    fetchStats, 
+    fetchAllPackets, 
+    exportSession, 
+    subscribeToStats
+ };
