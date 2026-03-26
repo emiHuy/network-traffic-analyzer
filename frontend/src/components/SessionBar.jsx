@@ -13,7 +13,7 @@ function formatTimestamp(ts) {
   }
 }
 
-export default function SessionBar({ sessions = [], activeSessionId, onSelect, onCreate, onDelete, onExport }) {
+export default function SessionBar({ sessions = [], activeSessionId, onSelect, onCreate, onDelete, onExport, isCapturing }) {
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [newName, setNewName] = useState("");
@@ -107,6 +107,7 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               onKeyDown={handleCreate}
+              disabled={isCapturing}
             />
           </div>
         ) : (
