@@ -11,6 +11,7 @@ from db import (
 from capture import start_capture, stop_capture, get_capture_status
 from stats import get_all_stats, get_packets, total_packet_count
 from export import export_csv, export_excel
+from network_scan import active_scan, get_devices, clear_devices, get_subnet
 
 app = FastAPI()
 
@@ -30,6 +31,8 @@ app.add_middleware(
 class SessionCreate(BaseModel):
     name: str
 
+
+# ── Sessions ───────────────────────────────────────────────────────────────────
 
 @app.post('/sessions')
 def new_session(body: SessionCreate):
@@ -54,6 +57,8 @@ def delete_session(session_id: int):
     return {'deleted': session_id}
 
 
+# ── Capture ────────────────────────────────────────────────────────────────────
+
 @app.post('/capture/start/{session_id}')
 def capture_start(session_id: int):
     """Start packet capture for a session."""
@@ -71,7 +76,13 @@ def capture_stop():
     """Stop the active packet capture."""
     # Result format: {'stop_timestamp': '2026-03-16T14:35:02'}
     try:
-        return stop_capture()
+        result = stop_capture()
+        session_id = result.get('session_id')
+
+        if session_id and total_packet_count(session_id) > 0:
+            save_devices(session_id, get_devices())
+
+        return result
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -81,6 +92,8 @@ def capture_status():
     status = get_capture_status()
     return {'active_session': status}
 
+
+# ── Stats ──────────────────────────────────────────────────────────────────────
 
 @app.get('/stats/{session_id}')
 def get_stats(session_id: int, limit: int = 18):
@@ -103,6 +116,8 @@ def get_all_packets(session_id: int):
     """Return all packets for a session in ascending timestamp order."""
     return get_packets(session_id, limit=None, desc=False)
 
+
+# ── Export ─────────────────────────────────────────────────────────────────────
 
 @app.get('/export/{session_id}/csv')
 def export_session_csv(session_id: int):
@@ -133,6 +148,69 @@ def export_session_excel(session_id: int):
         headers={'Content-Disposition': f'attachment; filename="{filename}"'},
     )
 
+
+# ── topology ───────────────────────────────────────────────────────────────────
+
+@app.get('/topology')
+def get_topology(session_id: int | None = None):
+    """
+    Return device list for the network graph.
+
+    Without session_id → returns current in-memory state (live or post-capture).
+    With session_id    → returns persisted DB snapshot for that session.
+                         Falls back to in-memory if no snapshot exists yet.
+
+    Result format:
+    {
+      'subnet': '192.168.1.0/24',
+      'source': 'live' | 'snapshot',
+      'nodes': [
+        {
+          'ip': '192.168.1.1', 'mac': 'aa:bb:cc:dd:ee:ff',
+          'manufacturer': 'Netgear', 'first_seen': '...', 'last_seen': '...',
+          'bytes_seen': 980000, 'packet_count': 4821
+        },
+        ...
+      ]
+    }
+    """
+    if session_id:
+        if session_has_devices(session_id):
+            return {
+                'subnet': get_subnet(),
+                'source': 'snapshot',
+                'nodes':  load_devices(session_id),
+            }
+        return {
+            'subnet': get_subnet(),
+            'source': 'empty',
+            'nodes':  [],
+        }
+
+    return {
+        'subnet': get_subnet(),
+        'source': 'live',
+        'nodes':  get_devices(),
+    }
+
+
+@app.post('/topology/scan')
+def trigger_scan():
+    """
+    Run an active ARP scan across the subnet.
+    Clears in-memory device data and rebuilds from scan results.
+    Does not affect any persisted DB snapshots.
+    """
+    clear_devices()
+    nodes = active_scan(get_subnet())
+    return {
+        'subnet':      get_subnet(),
+        'nodes_found': len(nodes),
+        'nodes':       nodes,
+    }
+
+
+# ── WebSocket ───────────────────────────────────────────────────────────────────
 
 # Web socket for live dashboard updates
 @app.websocket('/ws/{session_id}')

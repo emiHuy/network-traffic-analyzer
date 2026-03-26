@@ -48,6 +48,22 @@ async function exportSession(sessionId, format) {
     window.open(`${API}/export/${sessionId}/${format}`, '_blank');
 }
 
+async function fetchTopology(sessionId = null) {
+    // Without sessionId: returns current in-memory state (live or post-capture)
+    // With sessionId:    returns persisted DB snapshot for that session
+    // Returns { subnet, source: 'live'|'snapshot', nodes: [...] }
+    const url = sessionId ? `${API}/topology?session_id=${sessionId}` : `${API}/topology`;
+    const res = await fetch(url);
+    return res.json();
+}
+
+async function triggerScan() {
+    // Triggers active ARP scan on the backend (~2s blocking)
+    // Returns { subnet, nodes_found, nodes }
+    const res = await fetch(`${API}/topology/scan`, { method: 'POST' });
+    return res.json();
+}
+
 // Web Socket connection
 function subscribeToStats(sessionId, onData) {
     const ws = new WebSocket(`ws://127.0.0.1:8000/ws/${sessionId}`);
@@ -80,5 +96,7 @@ export {
     fetchStats, 
     fetchAllPackets, 
     exportSession, 
-    subscribeToStats
+    fetchTopology,
+    triggerScan,
+    subscribeToStats,
  };
