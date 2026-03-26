@@ -9,7 +9,7 @@ export default function TopIPs({ data = [] }) {
 
   return (
     <div className={styles.panel}>
-      <div className={styles.title}>top 10 IPs by traffic</div>
+      <div className={styles.title}>top 10 src IPs by traffic</div>
 
       {data.length === 0 && (
         <div className={styles.empty}>no data yet</div>
