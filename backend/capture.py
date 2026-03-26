@@ -1,7 +1,10 @@
-from scapy.all import sniff, IP
+from scapy.layers.l2 import Ether
+from scapy.layers.inet import IP
+from scapy.sendrecv import sniff
 import threading
 from datetime import datetime
-from store import store_packet
+from db import store_packet
+from network_scan import start_passive_sniffer, stop_passive_sniffer, record_packet
 
 stop_event = threading.Event() # Signal to stop capture
 capture_thread = None          # Sniffer thread
@@ -21,6 +24,7 @@ def start_capture(session_id: int):
             src = packet[IP].src
             dst = packet[IP].dst
             protocol = packet[IP].proto
+            size = len(packet)
             print(f'IP | {src} → {dst} | Protocol: {protocol}')
             
             # Store packet metadata
@@ -28,9 +32,12 @@ def start_capture(session_id: int):
                 'src_ip':    src,
                 'dst_ip':    dst,
                 'protocol':  protocol,
-                'size':      len(packet),
+                'size':      size,
                 'timestamp': datetime.now().isoformat(),
             }, session_id)
+
+            # update device activity in the topology store
+            record_packet(src, dst, size)
 
     active_session_id = session_id
     stop_event.clear()
@@ -44,19 +51,28 @@ def start_capture(session_id: int):
         )
     )
     capture_thread.start()
+    # start passive ARP sniffer alongside packet capture
+    start_passive_sniffer()
     return {'start_timestamp': datetime.now().isoformat()}
 
+
 def stop_capture():
-    global active_session_id
+    global active_session_id, capture_thread
 
     # Ensure a capture is running
     if active_session_id is None:
         raise RuntimeError("No capture is currently running")
 
+    completed_session_id = active_session_id
+    
     # Signal sniffer to stop
     stop_event.set()
+    stop_passive_sniffer()
+    capture_thread.join()
     active_session_id = None
-    return {'stop_timestamp': datetime.now().isoformat()}
+    
+    return {'stop_timestamp': datetime.now().isoformat(), 'session_id': completed_session_id,}
+
 
 def get_capture_status():
     return active_session_id
