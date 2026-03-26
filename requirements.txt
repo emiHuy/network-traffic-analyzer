@@ -9,6 +9,7 @@ greenlet==3.3.2
 h11==0.16.0
 httptools==0.7.1
 idna==3.11
+manuf==1.1.5
 openpyxl==3.1.5
 pydantic==2.12.5
 pydantic_core==2.41.5
