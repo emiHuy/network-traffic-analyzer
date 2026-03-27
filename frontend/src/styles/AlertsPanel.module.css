@@ -1,0 +1,108 @@
+/* ─── panel ───────────────────────────────────────── */
+.panel {
+    background: #0d1220;
+    border: 0.5px solid #1e2a40;
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-family: monospace;
+}
+
+/* ─── header ──────────────────────────────────────── */
+.titleRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.title {
+    font-size: 10px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.countBadge {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+/* ─── alert card ──────────────────────────────────── */
+.card {
+    border: 0.5px solid #1e2a40;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.card:last-child {
+    margin-bottom: 0;
+}
+
+.cardHigh {
+    border-left: 2.5px solid #ef4444;
+}
+
+.cardMedium {
+    border-left: 2.5px solid #f59e0b;
+}
+
+/* ─── card internals ──────────────────────────────── */
+.cardBody {
+    flex: 1;
+    min-width: 0;
+}
+
+.rule {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(79, 195, 247, 0.08);
+    color: #4fc3f7;
+    display: inline-block;
+    margin-bottom: 5px;
+}
+
+.desc {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 0 0 4px;
+    line-height: 1.5;
+}
+
+.meta {
+    font-size: 10px;
+    color: #546e8a;
+}
+
+/* ─── severity label ──────────────────────────────── */
+.sevHigh {
+    font-size: 9px;
+    font-weight: 500;
+    color: #ef4444;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.sevMedium {
+    font-size: 9px;
+    font-weight: 500;
+    color: #f59e0b;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ─── empty state ─────────────────────────────────── */
+.empty {
+    font-size: 11px;
+    color: #546e8a;
+    padding: 8px 0;
+}
