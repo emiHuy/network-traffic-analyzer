@@ -7,7 +7,7 @@ function fmt(s) {
   return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 }
 
-export default function TopBar({ sessionId, isCapturing, sessionHasData, onStart, onStop }) {
+export default function TopBar({ sessionId, isCapturing, sessionHasData, onStart, onStop, isStopping }) {
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef(null);
 
@@ -29,7 +29,9 @@ export default function TopBar({ sessionId, isCapturing, sessionHasData, onStart
       </div>
 
       <div className={styles.status}>
-        {isCapturing ? (
+        {isStopping ? (
+          <span>stopping…</span>
+        ) : isCapturing ? (
           <>
             <span><span className={styles.pulse} />capturing</span>
             <span className={styles.timer}>{fmt(elapsed)}</span>
@@ -48,9 +50,9 @@ export default function TopBar({ sessionId, isCapturing, sessionHasData, onStart
           ▶ start
         </button>
         <button
-          className={`${styles.btnBase} ${styles.btnStop} ${!isCapturing ? styles.btnDisabled : ''}`}
+          className={`${styles.btnBase} ${styles.btnStop} ${!isCapturing || isStopping ? styles.btnDisabled : ''}`}
           onClick={onStop}
-          disabled={!isCapturing}
+          disabled={!isCapturing || isStopping}
         >
           ■ stop
         </button>
