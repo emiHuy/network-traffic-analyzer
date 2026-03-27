@@ -15,4 +15,48 @@
     margin: 8px 0;
 }
 
+/* ─── scanning overlay ────────────────────────────── */
+.scanningOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    backdrop-filter: blur(1px); /* glassy blur */
+    background: rgba(13, 18, 32, 0.6); /* semi-transparent dark */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* ─── scanning box ───────────────────────────────── */
+.scanningBox {
+    background: rgba(30, 42, 64, 0.3); 
+    color: #4fc3f7; /* accent color for scanning text */
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-family: monospace;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* optional: spinner next to text */
+.scanningBox::before {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(79, 195, 247, 0.3);
+    border-top: 3px solid #4fc3f7;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
