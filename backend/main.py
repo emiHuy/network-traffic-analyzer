@@ -229,7 +229,7 @@ async def websocket_endpoint(ws: WebSocket, session_id: int, limit: int = 18):
         print(f'WebSocket accepted for session {session_id}')
         while True:
             await ws.send_json({
-                **get_all_stats(session_id, limit), 
+                'stats': get_all_stats(session_id, limit), 
                 'topology' : get_devices(),
                 'alerts':   get_alerts(session_id),
                 })
