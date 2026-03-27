@@ -38,6 +38,7 @@ function App() {
   // ── Capture ───────────────────────────────────────────────────────────────
   const [capturing, setCapturing] = useState(false);
   const wsCleanup = useRef(null);        
+  const [stopping, setStopping] = useState(false);
 
   // ── Topology ──────────────────────────────────────────────────────────────
   const [topology, setTopology] = useState({ nodes: [] });
@@ -119,12 +120,14 @@ function App() {
   }
 
   async function onStop() {
+    setStopping(true);
     await stopCapture();
     if (wsCleanup.current) {
       wsCleanup.current();
       wsCleanup.current = null;
     }
     setCapturing(false);
+    setStopping(false);
     setSessions(await fetchSessions());
 
     // pull final session totals into topology
@@ -194,6 +197,7 @@ function App() {
         sessionHasData={sessionHasData}
         onStart={onStart}
         onStop={onStop}
+        isStopping={stopping}
       />
       <SessionBar
         sessions={sessions}
