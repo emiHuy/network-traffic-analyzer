@@ -7,6 +7,7 @@ A Python-based network traffic analyzer that captures live packets, stores them 
 ✅ **M2** — Packet storage and stats (SQLite + SQLAlchemy)   
 ✅ **M3** — Live web dashboard (FastAPI + React)  
 ✅ **M4** — Network Device Diagram 
+✅ **M5** — Rule-Based Anomaly Detection
 
 ---
 
