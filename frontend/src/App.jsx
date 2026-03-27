@@ -11,7 +11,8 @@ import {
   fetchAllPackets,
   exportSession,
   fetchTopology,
-  triggerScan 
+  triggerScan,
+  fetchAlerts
 } from './api/client.js';
 
 import TopBar       from './components/TopBar.jsx';
@@ -21,6 +22,7 @@ import Dashboard    from './components/Dashboard.jsx';
 import NetworkGraph from './components/NetworkGraph.jsx';
 
 import styles from './styles/App.module.css'
+import AlertsPanel from './components/AlertsPanel.jsx';
 
 function App() {
 
@@ -43,6 +45,8 @@ function App() {
   const lastScanTime = useRef(null);
   const [lastScanDisplay, setLastScanDisplay] = useState(null); // state copy so label re-renders
 
+  // ── Alerts ────────────────────────────────────────────────────────────────
+  const [alerts, setAlerts] = useState([]);
 
   const sessionHasData = sessions.find(s => s.id === sessionId)?.packet_count > 0;
 
@@ -97,12 +101,17 @@ function App() {
 
     await startCapture(sessionId);
 
-    wsCleanup.current = subscribeToStats(sessionId, (newStats) => {
-      setStats(newStats);
+    wsCleanup.current = subscribeToStats(sessionId, (data) => {
+      console.log(data);
+      setStats(data.stats);
 
       // overlay live packet activity onto topology nodes
-      if (newStats.topology?.length) {
-        setTopology(prev => ({ ...prev, nodes: newStats.topology }));
+      if (data.topology?.length) {
+        setTopology(prev => ({ ...prev, nodes: data.topology }));
+      }
+
+      if (data.alerts?.length) {
+        setAlerts(data.alerts);
       }
     });
     
@@ -121,6 +130,7 @@ function App() {
     // pull final session totals into topology
     const topo = await fetchTopology();
     setTopology(topo);
+    setAlerts(await fetchAlerts(sessionId));
   }
 
   // ── Session management ────────────────────────────────────────────────────
@@ -135,6 +145,7 @@ function App() {
     setSessionId(session_id);
     setStats(await fetchStats(session_id));
     setTopology({ nodes: [] })
+    setAlerts([]);
     lastScanTime.current = null;
   }
 
@@ -150,6 +161,7 @@ function App() {
     }
     await deleteSession(id);
     setTopology({ nodes: [] }); 
+    setAlerts([]);
     setSessions(await fetchSessions());
   }
 
@@ -161,6 +173,7 @@ function App() {
     const topo = await fetchTopology(id);
     console.log('topology for session', id, topo);
     setTopology(topo);
+    setAlerts(await fetchAlerts(id));
     lastScanTime.current = null;
   }
 
@@ -217,6 +230,11 @@ function App() {
         lastScanTime={lastScanDisplay}
         sessionHasData={sessionHasData}
         />
+      <AlertsPanel
+        isVisible={activeView === 'alerts'}
+        alerts={alerts}
+        sessionId={sessionId}
+      />
     </div>
   )
 }
