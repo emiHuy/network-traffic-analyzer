@@ -128,8 +128,7 @@ function App() {
     setSessions(await fetchSessions());
 
     // pull final session totals into topology
-    const topo = await fetchTopology();
-    setTopology(topo);
+    setTopology(await fetchTopology(sessionId));
     setAlerts(await fetchAlerts(sessionId));
   }
 
@@ -168,11 +167,8 @@ function App() {
   async function onSelect(id) {
     if (id == sessionId) return;
     setSessionId(id);
-    setTopology({ nodes: [] }); 
     setStats(await fetchStats(id));
-    const topo = await fetchTopology(id);
-    console.log('topology for session', id, topo);
-    setTopology(topo);
+    setTopology(await fetchTopology(id));
     setAlerts(await fetchAlerts(id));
     lastScanTime.current = null;
   }
