@@ -3,12 +3,15 @@ from scapy.layers.inet import IP, TCP, UDP
 from scapy.sendrecv import sniff
 import threading
 from datetime import datetime
-from db import store_packet
+from db import store_packet, save_alert
 from network_scan import start_passive_sniffer, stop_passive_sniffer, record_packet
+from anomaly import AnomalyDetector
 
 stop_event = threading.Event() # Signal to stop capture
 capture_thread = None          # Sniffer thread
-active_session_id = None       # Current session id
+active_session_id = None       # Current session 
+detector = AnomalyDetector()
+
 
 def start_capture(session_id: int):
     global capture_thread, active_session_id
@@ -16,6 +19,8 @@ def start_capture(session_id: int):
     # Prevent multiple captures at once
     if active_session_id is not None:
         raise RuntimeError(f"Capture already running on session {active_session_id}")
+
+    detector._reset_state()
 
     # Called for each captured packet
     def packet_callback(packet):
@@ -25,26 +30,33 @@ def start_capture(session_id: int):
             dst = packet[IP].dst
             protocol = packet[IP].proto
             size = len(packet)
-            print(f'IP | {src} → {dst} | Protocol: {protocol}')
 
             dst_port = None
             if TCP in packet:
                 dst_port = packet[TCP].dport
             elif UDP in packet:
                 dst_port = packet[UDP].dport
-            
-            # Store packet metadata
-            store_packet({
+
+            print(f'IP | {src} → {dst} | Protocol: {protocol}')
+
+            pkt = {
                 'src_ip':    src,
                 'dst_ip':    dst,
                 'protocol':  protocol,
                 'dst_port':  dst_port,
                 'size':      size,
                 'timestamp': datetime.now().isoformat(),
-            }, session_id)
-
+            }
+            
+            # Store packet metadata
+            store_packet(pkt, session_id)
             # update device activity in the topology store
             record_packet(src, dst, size)
+
+            # Run anomaly detection
+            alerts = detector.analyze_packet(pkt)
+            for alert in alerts:
+                save_alert(alert, session_id)
 
     active_session_id = session_id
     stop_event.clear()
@@ -52,6 +64,7 @@ def start_capture(session_id: int):
     # Run packet sniffer in background
     capture_thread = threading.Thread(
         target=lambda: sniff(
+            iface="Wi-Fi",
             prn=packet_callback,
             store=False,
             stop_filter=lambda x: stop_event.is_set(),
