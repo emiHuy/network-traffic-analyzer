@@ -20,12 +20,14 @@ import SessionBar   from './components/SessionBar.jsx';
 import NavBar       from './components/NavBar.jsx';
 import Dashboard    from './components/Dashboard.jsx';
 import NetworkGraph from './components/NetworkGraph.jsx';
+import AlertsPanel  from './components/AlertsPanel.jsx';
+import { useToast } from './components/ToastContext.jsx';
 
 import styles from './styles/App.module.css'
-import AlertsPanel from './components/AlertsPanel.jsx';
 
 function App() {
-
+  const toast = useToast();
+  
   // ── Navigation ────────────────────────────────────────────────────────────
   const [activeView, setActiveView] = useState('dashboard');
 
@@ -33,7 +35,6 @@ function App() {
   const [sessions, setSessions] = useState([]);      
   const [sessionId, setSessionId] = useState(null);  
   const [stats, setStats] = useState(null);         
-  const [error, setError] = useState(null);
 
   // ── Capture ───────────────────────────────────────────────────────────────
   const [capturing, setCapturing] = useState(false);
@@ -48,6 +49,7 @@ function App() {
 
   // ── Alerts ────────────────────────────────────────────────────────────────
   const [alerts, setAlerts] = useState([]);
+  const seenAlertIds = useRef(new Set());
 
   const sessionHasData = sessions.find(s => s.id === sessionId)?.packet_count > 0;
 
@@ -73,12 +75,14 @@ function App() {
   async function onScan() {
       setScanning(true);
       try {
-          const result = await triggerScan();
-          setTopology({ nodes: result.nodes });
-          lastScanTime.current = Date.now();
-          setLastScanDisplay(Date.now()); // state update triggers re-render so label updates
+        const result = await triggerScan();
+        setTopology({ nodes: result.nodes });
+        lastScanTime.current = Date.now();
+        setLastScanDisplay(Date.now()); // state update triggers re-render so label updates
+      } catch (e) {
+        toast.error('Scan failed', e?.message ?? 'Could not complete network scan.');
       } finally {
-          setScanning(false);
+        setScanning(false);
       }
   }
 
@@ -93,14 +97,19 @@ function App() {
         // no scan data — silent auto-scan first
         await onScan();
     } else if (scanAge > twoHours) {
-        // stale data — ask user
-        const rescan = window.confirm(
-            'Scan data is over 2 hours old. Rescan before capturing?'
-        );
+        toast.warning('Stale scan data', 'Network map is over 2 hours hold. Consider rescanning.');
+        const rescan = confirm('Rescan?');
         if (rescan) await onScan();
     }
 
-    await startCapture(sessionId);
+    try { 
+      await startCapture(sessionId);
+    } catch (e) {
+      toast.error('Capture failed to start', e?.message ?? 'Could not bind to interface.');
+      return;
+    }
+
+    seenAlertIds.current = new Set();
 
     wsCleanup.current = subscribeToStats(sessionId, (data) => {
       console.log(data);
@@ -113,77 +122,113 @@ function App() {
 
       if (data.alerts?.length) {
         setAlerts(data.alerts);
+
+        data.alerts.forEach(alert => {
+          if (!seenAlertIds.current.has(alert.id)) {
+            seenAlertIds.current.add(alert).id;
+            toast.alert(
+              `Anomaly: ${alert.rule_triggered.replace(/_/g, ' ')}`,
+              alert.description
+            );
+          }
+        });
       }
     });
     
     setCapturing(true);
+    toast.info('Capture started', `Listening on network · session active.`);
   }
 
   async function onStop() {
     setStopping(true);
-    await stopCapture();
+
+    try {
+      await stopCapture();
+    } catch (e) {
+      toast.error('Failed to stop capture', e?.message ?? 'Unknown error.');
+      setStopping(false);
+      return;
+    }
+    
     if (wsCleanup.current) {
       wsCleanup.current();
       wsCleanup.current = null;
     }
     setCapturing(false);
     setStopping(false);
-    setSessions(await fetchSessions());
 
-    // pull final session totals into topology
+    setSessions(await fetchSessions());
     setTopology(await fetchTopology(sessionId));
     setAlerts(await fetchAlerts(sessionId));
+    toast.info('Capture stopped', 'Session data saved.');
   }
 
   // ── Session management ────────────────────────────────────────────────────
   async function onCreate(name) {
     if (sessions.some(s => s.name === name)) {
-      setError('A session with that name already exists.');
-      setTimeout(() => setError(null), 3000);
+      toast.error('Duplicate session name', `A session named "${name}" already exists.`);
       return;
     }
-    const { session_id } = await createSession(name);
-    setSessions(await fetchSessions());
-    setSessionId(session_id);
-    setStats(await fetchStats(session_id));
-    setTopology({ nodes: [] })
-    setAlerts([]);
-    lastScanTime.current = null;
+    try {
+      const { session_id } = await createSession(name);
+      setSessions(await fetchSessions());
+      setSessionId(session_id);
+      setStats(await fetchStats(session_id));
+      setTopology({ nodes: [] })
+      setAlerts([]);
+      lastScanTime.current = null;
+      toast.success('Session created', `Session "${name}" added to database.`);
+    } catch (e) {
+      toast.error('Failed to create session', e?.message ?? 'Unknown error.');
+    }
   }
 
   async function onDelete(id) {
     if (id == sessionId && capturing) {
-      setError('Cannot delete a session while capturing.');
-      setTimeout(() => setError(null), 3000);
+      toast.error('Cannot delete during active session', 'Stop the capture before deleting.');
       return;
     }
-    if (id == sessionId) {
-      setSessionId(null);
-      setStats(null);
+    try {
+      if (id == sessionId) {
+        setSessionId(null);
+        setStats(null);
+        setTopology({ nodes: [] }); 
+        setAlerts([]);
+      }
+      await deleteSession(id);
+      setSessions(await fetchSessions());
+      toast.success('Session deleted', `Session removed from database.`);
+    } catch (e) {
+      toast.error('Failed to delete session', e?.message ?? 'Unknown error.');
     }
-    await deleteSession(id);
-    setTopology({ nodes: [] }); 
-    setAlerts([]);
-    setSessions(await fetchSessions());
   }
 
   async function onSelect(id) {
     if (id == sessionId) return;
-    setSessionId(id);
-    setStats(await fetchStats(id));
-    setTopology(await fetchTopology(id));
-    setAlerts(await fetchAlerts(id));
-    lastScanTime.current = null;
+    try {
+      setSessionId(id);
+      setStats(await fetchStats(id));
+      setTopology(await fetchTopology(id));
+      setAlerts(await fetchAlerts(id));
+      lastScanTime.current = null;
+    } catch (e) {
+      toast.error('Failed to load session', e?.message ?? 'Unknown error.');
+    }
   }
 
   async function onExport(id, format) {
-    return exportSession(id, format)
+    try {
+      const exp = await exportSession(id, format);
+      toast.success('Export started', `Downloading session as .${format}.`);
+      return exp;
+    } catch (e) {
+      toast.error('Export failed', e?.messsage ?? 'Unknown error.');
+    }
   }
   
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={styles.app}>
-      {error && <div className={styles.error}>{error}</div>}
       {scanning && (
         <div className={styles.scanningOverlay}>
           <div className={styles.scanningBox}>
