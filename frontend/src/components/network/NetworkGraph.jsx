@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import styles from '../styles/NetworkGraph.module.css';
+import styles from './NetworkGraph.module.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 

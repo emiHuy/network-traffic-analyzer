@@ -6,7 +6,7 @@ import ProtocolBreakdown from './ProtocolBreakdown.jsx';
 import PacketFeed        from './PacketFeed.jsx';
 import PacketSearch      from './PacketSearch.jsx';
 
-import styles from '../styles/Dashboard.module.css'
+import styles from './Dashboard.module.css'
 
 export default function Dashboard({ isVisible, stats, sessionId, fetchAllPackets }) {
   const [searching, setSearching] = useState(false); 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import styles from '../styles/PacketSearch.module.css';
-import { PROTO_NAMES, PROTO_COLOURS } from '../constants/protocols';
+import styles from './PacketSearch.module.css';
+import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
 
 // formats ISO timestamp to HH:MM:SS.mmm
 function formatTimestamp(ts) {

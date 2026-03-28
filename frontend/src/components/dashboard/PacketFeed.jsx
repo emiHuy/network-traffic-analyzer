@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { PROTO_NAMES, PROTO_COLOURS } from '../constants/protocols';
-import styles from '../styles/PacketFeed.module.css';
+import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
+import styles from './PacketFeed.module.css';
 
 const COLLAPSED_LIMIT = 6;
 

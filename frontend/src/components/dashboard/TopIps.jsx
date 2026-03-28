@@ -1,4 +1,4 @@
-import styles from '../styles/TopIps.module.css'
+import styles from './TopIps.module.css'
 
 // bar colors cycle through accent palette by rank
 const BAR_COLORS = ["#4fc3f7", "#4fc3f7", "#a78bfa", "#a78bfa", "#22c55e", "#22c55e", "#f59e0b", "#f59e0b", "#f59e0b", "#f59e0b"];

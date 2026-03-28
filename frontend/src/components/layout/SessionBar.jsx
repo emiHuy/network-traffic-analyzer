@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import styles from '../styles/SessionBar.module.css';
+import styles from './SessionBar.module.css';
 
 function formatTimestamp(ts) {
   if (!ts) return '—';

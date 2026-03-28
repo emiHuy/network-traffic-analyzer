@@ -1,6 +1,6 @@
 import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts';
-import { PROTO_NAMES, PROTO_COLOURS } from '../constants/protocols';
-import styles from '../styles/ProtocolBreakdown.module.css';
+import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
+import styles from './ProtocolBreakdown.module.css';
 
 // custom tooltip shown on slice hover
 const CustomTooltip = ({ active, payload }) => {
