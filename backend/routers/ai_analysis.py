@@ -1,3 +1,4 @@
+import os
 import json
 import urllib.request
 import urllib.error
@@ -7,7 +8,9 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
-GEMINI_URL = (
+_GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+
+_GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
     "gemini-2.5-flash:generateContent"
 )
@@ -42,7 +45,7 @@ def _call_gemini(prompt: str, api_key: str) -> str:
     if not api_key or not api_key.strip():
         raise HTTPException(status_code=400, detail="Gemini API key is required.")
 
-    url = f"{GEMINI_URL}?key={api_key.strip()}"
+    url = f"{_GEMINI_URL}?key={api_key.strip()}"
     payload = json.dumps({
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -137,6 +140,11 @@ Keep total response under 120 words."""
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
+
+@router.get("/status")
+def ai_status():
+    """Frontend uses this to decide whether to show the key input UI."""
+    return {"configured": bool(_GEMINI_API_KEY)}
 
 @router.post("/analyze/session")
 def analyze_session(body: SessionAnalysisRequest):
