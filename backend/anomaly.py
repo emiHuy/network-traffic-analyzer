@@ -3,11 +3,11 @@ from datetime import datetime, timedelta
 from db.packets import get_packets
 
 # ── Tunable thresholds ─────────────────────────────────────────────────────────
-HIGH_VOLUME_LIMIT    = 200   # packets from one IP within the time window
+HIGH_VOLUME_LIMIT    = 350   # packets from one IP within the time window
 HIGH_VOLUME_WINDOW   = 60    # seconds
 
-PORT_SCAN_LIMIT      = 15    # unique ports on one dst_ip within the time window
-PORT_SCAN_WINDOW     = 30    # seconds
+PORT_SCAN_LIMIT      = 20    # unique ports on one dst_ip within the time window
+PORT_SCAN_WINDOW     = 60    # seconds
 
 SUSPICIOUS_PORTS = {
     4444,   # common malware / metasploit
