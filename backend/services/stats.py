@@ -3,15 +3,6 @@ from db import engine
 from db.models import packet_table
 from db.packets import get_packets, count_packets
 
-_PROTOCOL_NAMES = {
-    1: 'ICMP',
-    2: 'IGMP',
-    6: 'TCP',
-    17: 'UDP',
-    41: 'IPv6',
-    89: 'OSPF',
-}
-
 def top_10_ips(session_id: int, limit: int = 10) -> list[dict]:
     query = (
         select(packet_table.c.src_ip, func.count().label('total'))
@@ -33,7 +24,7 @@ def protocol_breakdown(session_id: int) -> list[dict]:
     )
     with engine.connect() as conn:
         results = conn.execute(query).fetchall()
-    return [{'protocol': _PROTOCOL_NAMES.get(r[0], 'Unknown'), 'total': r[1]} for r in results]
+    return [{'protocol': r[0], 'total': r[1]} for r in results]
 
 
 def packets_per_minute(session_id: int) -> list[dict]:
