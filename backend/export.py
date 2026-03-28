@@ -3,7 +3,7 @@ import io
 from stats import get_packets
 from db import get_session
 
-HEADERS = ['session_id', 'session_name', 'src_ip', 'dst_ip', 'protocol', 'size', 'timestamp']
+HEADERS = ['session_id', 'session_name', 'src_ip', 'dst_ip', 'protocol', 'dst_port', 'size', 'timestamp']
 
 def export_csv(session_id: int) -> tuple[bytes, str]:
     """
@@ -48,7 +48,7 @@ def export_excel(session_id: int) -> tuple[bytes, str]:
     if session is None:
         raise ValueError(f'Session {session_id} not found')
 
-    packets = get_packets(session_id)
+    packets = get_packets(session_id, limit=None, desc=False)
 
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -70,8 +70,9 @@ def export_excel(session_id: int) -> tuple[bytes, str]:
         ws.cell(row=row_idx, column=3, value=pkt['src_ip'])
         ws.cell(row=row_idx, column=4, value=pkt['dst_ip'])
         ws.cell(row=row_idx, column=5, value=pkt['protocol'])
-        ws.cell(row=row_idx, column=6, value=pkt['size'])
-        ws.cell(row=row_idx, column=7, value=pkt['timestamp'])
+        ws.cell(row=row_idx, column=6, value=pkt['dst_port'])
+        ws.cell(row=row_idx, column=7, value=pkt['size'])
+        ws.cell(row=row_idx, column=8, value=pkt['timestamp'])
 
     # ── auto-size columns ────────────────────────────────────────────────────
     for col in ws.columns:
