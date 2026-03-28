@@ -125,7 +125,7 @@ function App() {
 
         data.alerts.forEach(alert => {
           if (!seenAlertIds.current.has(alert.id)) {
-            seenAlertIds.current.add(alert).id;
+            seenAlertIds.current.add(alert.id);
             toast.alert(
               `Anomaly: ${alert.rule_triggered.replace(/_/g, ' ')}`,
               alert.description
