@@ -1,4 +1,4 @@
-import styles from '../styles/MetricCards.module.css';
+import styles from './MetricCards.module.css';
 
 // single stat card — accent maps to a CSS class for the value color
 function MetricCard({ label, value, sub, accent }) {

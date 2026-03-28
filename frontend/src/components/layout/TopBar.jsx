@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import styles from '../styles/TopBar.module.css';
+import styles from './TopBar.module.css';
 
 // formats seconds into HH:MM:SS
 function fmt(s) {

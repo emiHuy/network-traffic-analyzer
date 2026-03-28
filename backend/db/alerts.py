@@ -1,0 +1,38 @@
+from sqlalchemy import insert, select
+from db import engine
+from db.models import alerts_table
+
+def save_alert(alert: dict, session_id: int) -> None:
+    with engine.connect() as conn:
+        conn.execute(insert(alerts_table).values(
+            session_id=session_id,
+            timestamp=alert['timestamp'],
+            src_ip=alert['src_ip'],
+            dst_ip=alert['dst_ip'],
+            rule_triggered=alert['rule_triggered'],
+            severity=alert['severity'],
+            description=alert['description'],
+        ))
+        conn.commit()
+
+
+def get_alerts(session_id: int) -> list[dict]:
+    query = (
+        select(alerts_table)
+        .where(alerts_table.c.session_id == session_id)
+        .order_by(alerts_table.c.timestamp.desc())
+    )
+    with engine.connect() as conn:
+        results = conn.execute(query).fetchall()
+    return [
+        {
+            'id':             r._mapping['id'],
+            'timestamp':      r._mapping['timestamp'],
+            'src_ip':         r._mapping['src_ip'],
+            'dst_ip':         r._mapping['dst_ip'],
+            'rule_triggered': r._mapping['rule_triggered'],
+            'severity':       r._mapping['severity'],
+            'description':    r._mapping['description'],
+        }
+        for r in results
+    ]

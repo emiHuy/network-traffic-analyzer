@@ -20,3 +20,18 @@ body {
   width: 100%;
   max-width: 1100px;
 }
+
+:root {
+  --bg-panel:       #0d1220;
+  --bg-deep:        #0a0e1a;
+  --bg-surface:     #151d2e;
+  --border:         #1e2a40;
+  --text-primary:   #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted:     #546e8a;
+  --accent-blue:    #4fc3f7;
+  --accent-green:   #22c55e;
+  --accent-amber:   #f59e0b;
+  --accent-purple:  #a78bfa;
+  --accent-red:     #ef4444;
+}

@@ -1,4 +1,4 @@
-import styles from '../styles/AlertsPanel.module.css';
+import styles from './AlertsPanel.module.css';
 
 function formatTimestamp(ts) {
   if (!ts) return '—';

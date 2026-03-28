@@ -1,4 +1,4 @@
-import styles from '../styles/NavBar.module.css';
+import styles from './NavBar.module.css';
 
 const TAB_INDICATORS = {
     dashboard: '#22c55e',  // green — capturing

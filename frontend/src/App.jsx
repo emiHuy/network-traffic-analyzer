@@ -15,15 +15,15 @@ import {
   fetchAlerts
 } from './api/client.js';
 
-import TopBar       from './components/TopBar.jsx';
-import SessionBar   from './components/SessionBar.jsx';
-import NavBar       from './components/NavBar.jsx';
-import Dashboard    from './components/Dashboard.jsx';
-import NetworkGraph from './components/NetworkGraph.jsx';
-import AlertsPanel  from './components/AlertsPanel.jsx';
-import { useToast } from './components/ToastContext.jsx';
+import TopBar       from './components/layout/TopBar.jsx';
+import SessionBar   from './components/layout/SessionBar.jsx';
+import NavBar       from './components/layout/NavBar.jsx';
+import Dashboard    from './components/dashboard/Dashboard.jsx';
+import NetworkGraph from './components/network/NetworkGraph.jsx';
+import AlertsPanel  from './components/alerts/AlertsPanel.jsx';
+import { useToast } from './components/ui/ToastContext.jsx';
 
-import styles from './styles/App.module.css'
+import styles from './App.module.css'
 
 function App() {
   const toast = useToast();
@@ -189,13 +189,13 @@ function App() {
       return;
     }
     try {
+      await deleteSession(id);
       if (id == sessionId) {
         setSessionId(null);
         setStats(null);
         setTopology({ nodes: [] }); 
         setAlerts([]);
       }
-      await deleteSession(id);
       setSessions(await fetchSessions());
       toast.success('Session deleted', `Session removed from database.`);
     } catch (e) {
