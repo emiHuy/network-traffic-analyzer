@@ -1,28 +1,14 @@
 import threading
 import ipaddress
+import socket
 from datetime import datetime
 
 import manuf
-import socket
 from scapy.layers.l2 import ARP, Ether
 from scapy.sendrecv import srp, sniff
 
 # ── MAC vendor parser — instantiated once at module level (slow to load) ──────
 _mac_parser = manuf.MacParser()
-
-# ── Shared device store ────────────────────────────────────────────────────────
-# keyed by MAC address (lowercase, colon-separated)
-# {
-#   'aa:bb:cc:dd:ee:ff': {
-#     'ip':           '192.168.1.42',
-#     'mac':          'aa:bb:cc:dd:ee:ff',
-#     'manufacturer': 'Apple, Inc.',
-#     'first_seen':   '2026-03-19T14:32:10',
-#     'last_seen':    '2026-03-19T14:32:10',
-#     'bytes_seen':   0,
-#     'packet_count': 0,
-#   }
-# }
 
 _devices: dict[str, dict] = {}
 _devices_lock = threading.Lock()

@@ -1,6 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
-from stats import get_packets
+from db.packets import get_packets
 
 # ── Tunable thresholds ─────────────────────────────────────────────────────────
 HIGH_VOLUME_LIMIT    = 200   # packets from one IP within the time window
