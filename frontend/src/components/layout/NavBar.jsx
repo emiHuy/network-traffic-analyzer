@@ -4,6 +4,7 @@ const TAB_INDICATORS = {
     dashboard: '#22c55e',  // green — capturing
     network:   '#f59e0b',  // amber — passive sniffer
     alerts:    '#f45757',
+    analysis:  '#c699d6',
 };
 
 export default function NavBar( { activeView, onViewChange, isCapturing, sessionId, numAlerts }) {
@@ -54,6 +55,22 @@ export default function NavBar( { activeView, onViewChange, isCapturing, session
                     />
                     alerts
                 </button>
+
+                <button
+                    className={`${styles.tab} ${activeView === 'analysis' ? styles.tabActive : ''}`}
+                    onClick={() => onViewChange('analysis')}
+                >
+                    <span
+                        className={styles.indicator}
+                        style={{
+                            background: TAB_INDICATORS.analysis,
+                            // amber dot always slightly visible — sniffer is always available
+                            opacity: 0.6,
+                        }}
+                    />
+                    ai analysis
+                </button>
+
             </div>
             { numAlerts > 0 ? (
                 <span className={styles.countBadge}>{numAlerts} alert{numAlerts !== 1 ? 's' : ''}</span>) : ('')

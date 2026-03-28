@@ -21,6 +21,7 @@ import NavBar       from './components/layout/NavBar.jsx';
 import Dashboard    from './components/dashboard/Dashboard.jsx';
 import NetworkGraph from './components/network/NetworkGraph.jsx';
 import AlertsPanel  from './components/alerts/AlertsPanel.jsx';
+import AiAnalysis   from './components/analysis/AiAnalysis.jsx';
 import { useToast } from './components/ui/ToastContext.jsx';
 
 import styles from './App.module.css'
@@ -279,6 +280,12 @@ function App() {
         />
       <AlertsPanel
         isVisible={activeView === 'alerts'}
+        alerts={alerts}
+        sessionId={sessionId}
+      />
+      <AiAnalysis 
+        isVisible={activeView === 'analysis'}
+        stats={stats}
         alerts={alerts}
         sessionId={sessionId}
       />
