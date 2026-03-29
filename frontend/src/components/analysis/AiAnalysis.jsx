@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { analyzeSession, analyzeAlert } from '../../api/client.js';
+import { analyzeSession, analyzeAlert, fetchAiStatus } from '../../api/client.js';
+import { useToast } from '../ui/ToastContext.jsx';
 import styles from './AiAnalysis.module.css';
 
 const LS_KEY = 'gemini_api_key';
@@ -40,15 +41,14 @@ function Skeleton() {
 // ── API key input (shared by setup screen + change flow) ──────────────────────
 
 function KeyInput({ onSave, onCancel, autoFocus = true, currentValue = '' }) {
+  const toast = useToast();
   const [val, setVal] = useState(currentValue);
   const [show, setShow] = useState(false);
-  const [err, setErr] = useState(null);
 
   function save() {
     const trimmed = val.trim();
-    if (!trimmed) { setErr('Please enter a key.'); return; }
+    if (!trimmed) { toast.error('Please enter an API key', 'Field is blank.'); return; }
     localStorage.setItem(LS_KEY, trimmed);
-    setErr(null);
     onSave(trimmed);
   }
 
@@ -60,7 +60,7 @@ function KeyInput({ onSave, onCancel, autoFocus = true, currentValue = '' }) {
           type={show ? 'text' : 'password'}
           placeholder="AIza..."
           value={val}
-          onChange={e => { setVal(e.target.value); setErr(null); }}
+          onChange={e => { setVal(e.target.value); }}
           onKeyDown={e => {
             if (e.key === 'Enter') save();
             if (e.key === 'Escape' && onCancel) onCancel();
@@ -77,7 +77,6 @@ function KeyInput({ onSave, onCancel, autoFocus = true, currentValue = '' }) {
           <button className={styles.cancelBtn} onClick={onCancel}>cancel</button>
         )}
       </div>
-      {err && <div className={styles.keyError}>{err}</div>}
     </div>
   );
 }
@@ -103,18 +102,17 @@ function ApiKeySetup({ onSave }) {
 
 // ── Alert explainer card ──────────────────────────────────────────────────────
 
-function AlertExplainer({ alert, apiKey }) {
+function AlertExplainer({ alert, apiKey, isCapturing }) {
+  const toast = useToast();
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
   async function explain() {
     setLoading(true);
-    setError(null);
     try {
       setResult(await analyzeAlert(alert, apiKey));
     } catch (e) {
-      setError(e.message);
+      toast.error('AI analysis failed', e.message);
     } finally {
       setLoading(false);
     }
@@ -131,7 +129,7 @@ function AlertExplainer({ alert, apiKey }) {
             {alert.severity}
           </span>
         </div>
-        <button className={styles.inlineBtn} onClick={explain} disabled={loading}>
+        <button className={styles.inlineBtn} onClick={explain} disabled={loading || isCapturing}>
           {loading ? 'analyzing…' : result ? '↺ re-explain' : '✦ explain'}
         </button>
       </div>
@@ -139,7 +137,6 @@ function AlertExplainer({ alert, apiKey }) {
       <p className={styles.alertDesc}>{alert.description}</p>
       <div className={styles.alertSrc}>{alert.src_ip} → {alert.dst_ip}</div>
 
-      {error && <div className={styles.errorBox}>{error}</div>}
       {loading && !result && <Skeleton />}
       {result && (
         <div className={styles.aiResult}>
@@ -153,16 +150,16 @@ function AlertExplainer({ alert, apiKey }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId }) {
+export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId, isCapturing }) {
+  const toast = useToast();
   // null = env key active (no UI key needed), string = user-provided key
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(LS_KEY) ?? null);
   const [envConfigured, setEnvConfigured] = useState(false);
   const [changingKey, setChangingKey] = useState(false);
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState(null);
 
-  // Check if backend has an env key — if so, no UI key needed
+  // Check if backend has an env key configured
   useEffect(() => {
     fetchAiStatus()
       .then(({ configured }) => setEnvConfigured(configured))
@@ -179,11 +176,10 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId })
   const generateSummary = useCallback(async () => {
     if (!stats) return;
     setSummaryLoading(true);
-    setSummaryError(null);
     try {
       setSummary(await analyzeSession(stats, alerts, activeKey));
     } catch (e) {
-      setSummaryError(e.message);
+      toast.error('AI analysis failed', e.message);
     } finally {
       setSummaryLoading(false);
     }
@@ -193,7 +189,7 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId })
     setApiKey(key);
     setChangingKey(false);
     setSummary(null);
-    setSummaryError(null);
+    toast.success('API key saved');
   }
 
   function clearKey() {
@@ -201,7 +197,6 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId })
     setApiKey(null);
     setChangingKey(false);
     setSummary(null);
-    setSummaryError(null);
   }
 
   return (
@@ -249,17 +244,19 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId })
               <button
                 className={styles.summaryBtn}
                 onClick={generateSummary}
-                disabled={summaryLoading || !hasData}
+                disabled={summaryLoading || !hasData || isCapturing}
                 title={!hasData ? 'No capture data yet' : undefined}
               >
                 {summaryLoading ? 'analyzing…' : summary ? '↺ re-analyze' : '✦ analyze this session'}
               </button>
             </div>
 
-            {!hasData && !summary && (
+            {isCapturing && (
+              <div className={styles.empty}>capture in progress — stop capture to analyze</div>
+            )}
+            {!isCapturing && !hasData && !summary && (
               <div className={styles.empty}>no session data yet — start a capture first</div>
             )}
-            {summaryError && <div className={styles.errorBox}>{summaryError}</div>}
             {summaryLoading && !summary && <Skeleton />}
 
             {summary && (
@@ -293,7 +290,7 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId })
             ) : (
               <div className={styles.alertList}>
                 {alerts.map(alert => (
-                  <AlertExplainer key={alert.id} alert={alert} apiKey={activeKey} />
+                  <AlertExplainer key={alert.id} alert={alert} apiKey={activeKey} isCapturing={isCapturing}/>
                 ))}
               </div>
             )}

@@ -74,17 +74,21 @@ function App() {
 
   // ── Scan ──────────────────────────────────────────────────────────────────
   async function onScan() {
-      setScanning(true);
-      try {
-        const result = await triggerScan();
-        setTopology({ nodes: result.nodes });
-        lastScanTime.current = Date.now();
-        setLastScanDisplay(Date.now()); // state update triggers re-render so label updates
-      } catch (e) {
-        toast.error('Scan failed', e?.message ?? 'Could not complete network scan.');
-      } finally {
-        setScanning(false);
-      }
+    if (!sessionId) {
+      toast.error('Scan failed', 'Must create a session first.');
+      return;
+    }
+    setScanning(true);
+    try {
+      const result = await triggerScan();
+      setTopology({ nodes: result.nodes });
+      lastScanTime.current = Date.now();
+      setLastScanDisplay(Date.now()); // state update triggers re-render so label updates
+    } catch (e) {
+      toast.error('Scan failed', e?.message ?? 'Could not complete network scan.');
+    } finally {
+      setScanning(false);
+    }
   }
 
   // ── Capture ───────────────────────────────────────────────────────────────
