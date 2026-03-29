@@ -292,6 +292,7 @@ function App() {
         stats={stats}
         alerts={alerts}
         sessionId={sessionId}
+        isCapturing={capturing}
       />
     </div>
   )
