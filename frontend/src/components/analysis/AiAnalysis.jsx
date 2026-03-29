@@ -164,8 +164,7 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId })
 
   // Check if backend has an env key — if so, no UI key needed
   useEffect(() => {
-    fetch('http://localhost:8000/ai/status')
-      .then(r => r.json())
+    fetchAiStatus()
       .then(({ configured }) => setEnvConfigured(configured))
       .catch(() => setEnvConfigured(false));
   }, []);

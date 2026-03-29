@@ -70,7 +70,6 @@ async function triggerScan() {
 }
 
 async function fetchAlerts(sessionId = null) {
-    if (!sessionId) return;
     const res = await fetch(`${API}/sessions/${sessionId}/alerts`);
     return res.json();
 }
@@ -95,6 +94,12 @@ function subscribeToStats(sessionId, onData) {
     ws.onclose = () => console.log("WS closed");
 
     return () => ws.close();
+}
+
+async function fetchAiStatus() {
+  const res = await fetch(`${API}/ai/status`);
+  if (!res.ok) throw new Error(`Server error ${res.status}`);
+  return res.json(); // { configured: bool }
 }
 
 async function analyzeSession(stats, alerts, apiKey = null) {
@@ -174,6 +179,7 @@ export {
     triggerScan,
     subscribeToStats,
     fetchAlerts,
+    fetchAiStatus,
     analyzeSession,
     analyzeAlert,
  };
