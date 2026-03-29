@@ -1,0 +1,474 @@
+/* ─── panel ───────────────────────────────────────── */
+.panel {
+    background: #0d1220;
+    border: 0.5px solid #1e2a40;
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-family: monospace;
+}
+
+/* ─── not-configured setup notice ────────────────── */
+.keySetup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    gap: 10px;
+    text-align: center;
+}
+
+.keyGlyph {
+    font-size: 20px;
+    color: #4fc3f7;
+    margin-bottom: 4px;
+}
+
+.keyTitle {
+    font-size: 12px;
+    color: #e2e8f0;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+.keyHint {
+    font-size: 10px;
+    color: #546e8a;
+    max-width: 420px;
+    line-height: 1.6;
+}
+
+.keyLink {
+    color: #4fc3f7;
+    text-decoration: none;
+}
+
+.keyLink:hover {
+    text-decoration: underline;
+}
+
+.code {
+    font-family: monospace;
+    background: #151d2e;
+    border: 0.5px solid #1e2a40;
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: #a78bfa;
+    font-size: 10px;
+}
+
+.codeBlock {
+    font-family: monospace;
+    font-size: 11px;
+    background: #151d2e;
+    border: 0.5px solid #1e2a40;
+    border-radius: 5px;
+    padding: 8px 14px;
+    color: #22c55e;
+    letter-spacing: 0.03em;
+    max-width: 420px;
+    width: 100%;
+    text-align: left;
+}
+
+/* ─── ready banner ────────────────────────────────── */
+.keyBanner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: rgba(79, 195, 247, 0.05);
+    border: 0.5px solid rgba(79, 195, 247, 0.15);
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.keyActive {
+    font-size: 10px;
+    color: #4fc3f7;
+    letter-spacing: 0.05em;
+}
+
+/* ─── sections ────────────────────────────────────── */
+.section {
+    margin-bottom: 1.25rem;
+}
+
+.section:last-child {
+    margin-bottom: 0;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.sectionTitle {
+    font-size: 10px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ─── summary button ──────────────────────────────── */
+.summaryBtn {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 0.5px solid rgba(79, 195, 247, 0.4);
+    background: rgba(79, 195, 247, 0.06);
+    color: #4fc3f7;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: background 0.15s ease;
+}
+
+.summaryBtn:hover:not(:disabled) {
+    background: rgba(79, 195, 247, 0.12);
+}
+
+.summaryBtn:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+/* ─── summary result card ─────────────────────────── */
+.summaryCard {
+    border: 0.5px solid #1e2a40;
+    border-radius: 6px;
+    padding: 12px 14px;
+    background: #0a0e1a;
+}
+
+.summaryMeta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.aiLabel {
+    font-size: 9px;
+    color: #4fc3f7;
+    letter-spacing: 0.08em;
+}
+
+.summaryStats {
+    font-size: 9px;
+    color: #546e8a;
+}
+
+.summaryText {
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.summaryText strong {
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+/* ─── loading skeleton ────────────────────────────── */
+.skeletonWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 10px 0;
+}
+
+.skeleton {
+    height: 10px;
+    background: #151d2e;
+    border-radius: 3px;
+    animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+}
+
+/* ─── alert cards ─────────────────────────────────── */
+.alertList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alertCard {
+    border: 0.5px solid #1e2a40;
+    border-radius: 6px;
+    padding: 10px 12px;
+}
+
+.alertHigh {
+    border-left: 2.5px solid #ef4444;
+}
+
+.alertMedium {
+    border-left: 2.5px solid #f59e0b;
+}
+
+.alertHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.alertMeta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ruleBadge {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(79, 195, 247, 0.08);
+    color: #4fc3f7;
+}
+
+.sevBadge {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.sevHigh {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.sevMedium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.inlineBtn {
+    font-family: monospace;
+    font-size: 9px;
+    padding: 3px 9px;
+    border-radius: 3px;
+    border: 0.5px solid #1e2a40;
+    background: transparent;
+    color: #546e8a;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+}
+
+.inlineBtn:hover:not(:disabled) {
+    border-color: #4fc3f7;
+    color: #4fc3f7;
+    background: rgba(79, 195, 247, 0.05);
+}
+
+.inlineBtn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.alertDesc {
+    font-size: 11px;
+    color: #94a3b8;
+    margin: 0 0 4px;
+    line-height: 1.5;
+}
+
+.alertSrc {
+    font-size: 10px;
+    color: #546e8a;
+    margin-bottom: 8px;
+}
+
+/* ─── ai result block ─────────────────────────────── */
+.aiResult {
+    border-top: 0.5px solid #1e2a40;
+    padding-top: 8px;
+    margin-top: 4px;
+}
+
+.aiText {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+
+.aiText strong {
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+/* ─── shared states ───────────────────────────────── */
+.empty {
+    font-size: 11px;
+    color: #546e8a;
+    padding: 8px 0;
+}
+
+.errorBox {
+    font-size: 10px;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+    border: 0.5px solid rgba(239, 68, 68, 0.2);
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-top: 6px;
+}
+
+.alertCountBadge {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+/* ─── key change banner ───────────────────────────── */
+.keyChangeBanner {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
+    background: rgba(79, 195, 247, 0.04);
+    border: 0.5px solid rgba(79, 195, 247, 0.2);
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.keyChangeLabel {
+    font-size: 10px;
+    color: #546e8a;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* ─── shared key input block ──────────────────────── */
+.keyInputBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+}
+
+/* ─── cancel button ───────────────────────────────── */
+.cancelBtn {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 0.5px solid #1e2a40;
+    background: transparent;
+    color: #546e8a;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.cancelBtn:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.06);
+}
+
+/* ─── key row layout ──────────────────────────────── */
+.keyRow {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+    align-items: center;
+}
+
+/* ─── key input field ─────────────────────────────── */
+.keyInput {
+    flex: 1;
+    font-family: monospace;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    border: 0.5px solid #1e2a40;
+    background: #151d2e;
+    color: #e2e8f0;
+    outline: none;
+    min-width: 0;
+    transition: border-color 0.15s;
+}
+
+.keyInput:focus {
+    border-color: #4fc3f7;
+}
+
+.keyInput::placeholder {
+    color: #2f3f5b;
+}
+
+/* ─── show / hide button ──────────────────────────── */
+.showBtn {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 0.5px solid #1e2a40;
+    background: transparent;
+    color: #546e8a;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.showBtn:hover {
+    border-color: #2f3f5b;
+    color: #94a3b8;
+}
+
+/* ─── save button ─────────────────────────────────── */
+.saveBtn {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 0.5px solid #22c55e;
+    background: rgba(34, 197, 94, 0.08);
+    color: #22c55e;
+    cursor: pointer;
+    flex-shrink: 0;
+    font-weight: 500;
+    transition: background 0.15s;
+}
+
+.saveBtn:hover {
+    background: rgba(34, 197, 94, 0.15);
+}
+
+/* ─── change key button (in ready banner) ─────────── */
+.clearKeyBtn {
+    font-family: monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    border: 0.5px solid #1e2a40;
+    background: transparent;
+    color: #546e8a;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.clearKeyBtn:hover {
+    border-color: #4fc3f7;
+    color: #4fc3f7;
+    background: rgba(79, 195, 247, 0.05);
+}
+
+/* ─── key error message ───────────────────────────── */
+.keyError {
+    font-size: 10px;
+    color: #ef4444;
+    padding-left: 2px;
+}

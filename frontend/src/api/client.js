@@ -70,7 +70,6 @@ async function triggerScan() {
 }
 
 async function fetchAlerts(sessionId = null) {
-    if (!sessionId) return;
     const res = await fetch(`${API}/sessions/${sessionId}/alerts`);
     return res.json();
 }
@@ -97,6 +96,75 @@ function subscribeToStats(sessionId, onData) {
     return () => ws.close();
 }
 
+async function fetchAiStatus() {
+  const res = await fetch(`${API}/ai/status`);
+  if (!res.ok) throw new Error(`Server error ${res.status}`);
+  return res.json(); // { configured: bool }
+}
+
+async function analyzeSession(stats, alerts, apiKey = null) {
+  const proto = (stats?.protocol_breakdown ?? [])
+    .map(p => `${p.protocol}: ${p.total}`)
+    .join(', ');
+
+  const topIps = (stats?.top_10_ips ?? [])
+    .slice(0, 5)
+    .map(ip => `${ip.ip} (${ip.total} pkts)`)
+    .join(', ');
+
+  const ppm = stats?.packets_per_minute ?? [];
+  const peak = ppm.length ? Math.max(...ppm.map(p => p.total)) : 0;
+
+  const alertsSummary = alerts.length === 0
+    ? 'No anomalies detected.'
+    : alerts.slice(0, 5)
+        .map(a => `[${a.severity.toUpperCase()}] ${a.rule_triggered}: ${a.description}`)
+        .join('\n');
+
+  const res = await fetch(`${API}/ai/analyze/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key:              apiKey,   // null = backend uses env key
+      total_packets:        stats?.total_packets ?? 0,
+      avg_packet_size:      stats?.average_packet_size ?? null,
+      active_hosts:         stats?.active_hosts ?? 0,
+      peak_packets_per_min: peak,
+      protocol_breakdown:   proto,
+      top_ips:              topIps,
+      alert_count:          alerts.length,
+      alerts_summary:       alertsSummary,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.detail ?? `Server error ${res.status}`);
+  }
+  return (await res.json()).result;
+}
+
+async function analyzeAlert(alert, apiKey = null) {
+  const res = await fetch(`${API}/ai/analyze/alert`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key:     apiKey,           // null = backend uses env key
+      rule:        alert.rule_triggered,
+      severity:    alert.severity,
+      src_ip:      alert.src_ip,
+      dst_ip:      alert.dst_ip,
+      description: alert.description,
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.detail ?? `Server error ${res.status}`);
+  }
+  return (await res.json()).result;
+}
+
 export { 
     fetchSessions, 
     createSession, 
@@ -111,4 +179,7 @@ export {
     triggerScan,
     subscribeToStats,
     fetchAlerts,
+    fetchAiStatus,
+    analyzeSession,
+    analyzeAlert,
  };

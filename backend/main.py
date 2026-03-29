@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import CORS_ORIGINS
-from routers import sessions, packets, capture, devices, alerts, network, websocket
+from routers import sessions, packets, capture, devices, alerts, network, websocket, ai_analysis
 
 app = FastAPI()
 
@@ -24,3 +24,5 @@ app.include_router(websocket.router, prefix='/sessions',  tags=['websocket'])
 # standalone resources
 app.include_router(capture.router,   prefix='/capture',   tags=['capture'])
 app.include_router(network.router,   prefix='/network',   tags=['network'])
+app.include_router(ai_analysis.router,  prefix='/ai',        tags=['ai'])
+

@@ -21,6 +21,7 @@ import NavBar       from './components/layout/NavBar.jsx';
 import Dashboard    from './components/dashboard/Dashboard.jsx';
 import NetworkGraph from './components/network/NetworkGraph.jsx';
 import AlertsPanel  from './components/alerts/AlertsPanel.jsx';
+import AiAnalysis   from './components/analysis/AiAnalysis.jsx';
 import { useToast } from './components/ui/ToastContext.jsx';
 
 import styles from './App.module.css'
@@ -73,17 +74,21 @@ function App() {
 
   // ── Scan ──────────────────────────────────────────────────────────────────
   async function onScan() {
-      setScanning(true);
-      try {
-        const result = await triggerScan();
-        setTopology({ nodes: result.nodes });
-        lastScanTime.current = Date.now();
-        setLastScanDisplay(Date.now()); // state update triggers re-render so label updates
-      } catch (e) {
-        toast.error('Scan failed', e?.message ?? 'Could not complete network scan.');
-      } finally {
-        setScanning(false);
-      }
+    if (!sessionId) {
+      toast.error('Scan failed', 'Must create a session first.');
+      return;
+    }
+    setScanning(true);
+    try {
+      const result = await triggerScan();
+      setTopology({ nodes: result.nodes });
+      lastScanTime.current = Date.now();
+      setLastScanDisplay(Date.now()); // state update triggers re-render so label updates
+    } catch (e) {
+      toast.error('Scan failed', e?.message ?? 'Could not complete network scan.');
+    } finally {
+      setScanning(false);
+    }
   }
 
   // ── Capture ───────────────────────────────────────────────────────────────
@@ -281,6 +286,13 @@ function App() {
         isVisible={activeView === 'alerts'}
         alerts={alerts}
         sessionId={sessionId}
+      />
+      <AiAnalysis 
+        isVisible={activeView === 'analysis'}
+        stats={stats}
+        alerts={alerts}
+        sessionId={sessionId}
+        isCapturing={capturing}
       />
     </div>
   )
