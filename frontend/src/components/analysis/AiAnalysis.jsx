@@ -166,6 +166,12 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId, i
       .catch(() => setEnvConfigured(false));
   }, []);
 
+  // Clear AI responses when session changes
+  useEffect(() => {
+    setSummary(null);
+    setSummaryLoading(false);
+  }, [sessionId]);
+
   // Ready if env key exists OR user has provided one
   const ready = envConfigured || !!apiKey;
   // Key to send with requests — null means backend will use its env key
