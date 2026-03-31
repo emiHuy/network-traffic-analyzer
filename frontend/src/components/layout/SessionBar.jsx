@@ -1,6 +1,28 @@
+/**
+ * @file SessionBar.jsx
+ * @description Session selector and manager bar.
+ *
+ * Provides:
+ *   - Dropdown to select the active session.
+ *   - Create new session inline (keyboard support: Enter/Escape).
+ *   - Delete sessions.
+ *   - Export active session (CSV / Excel).
+ *   - Aggregate stats across all sessions.
+ *
+ * Props:
+ *   @prop {object[]}  sessions         - Array of session objects: { id, name, created_at, packet_count }.
+ *   @prop {number}    activeSessionId  - Currently selected session ID.
+ *   @prop {Function}  onSelect         - Callback when selecting a session (id) from the dropdown.
+ *   @prop {Function}  onCreate         - Callback when creating a new session (name).
+ *   @prop {Function}  onDelete         - Callback when deleting a session (id).
+ *   @prop {Function}  onExport         - Callback to export a session (id, format).
+ *   @prop {boolean}   isCapturing      - Whether live capture is active (disables new session input).
+ */
+
 import { useState, useEffect, useRef } from 'react';
 import styles from './SessionBar.module.css';
 
+/** Formats a timestamp for display, fallback to '—' */
 function formatTimestamp(ts) {
   if (!ts) return '—';
   try {
@@ -14,11 +36,11 @@ function formatTimestamp(ts) {
 }
 
 export default function SessionBar({ sessions = [], activeSessionId, onSelect, onCreate, onDelete, onExport, isCapturing }) {
-  const [open, setOpen] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [newName, setNewName] = useState("");
-  const wrapRef = useRef(null);
-  const addingRef = useRef(null);
+  const [open, setOpen] = useState(false);     // dropdown open state
+  const [adding, setAdding] = useState(false); // inline "new session" input visible
+  const [newName, setNewName] = useState("");  // new session input value
+  const wrapRef = useRef(null);                // dropdown container
+  const addingRef = useRef(null);              // new session input container
 
   const active = sessions.find((s) => s.id === activeSessionId);
   const totalPackets = sessions.reduce((sum, s) => sum + (s.packet_count || 0), 0);
@@ -32,7 +54,7 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // close input when clicking outside
+  // close new session input when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (addingRef.current && !addingRef.current.contains(e.target)) {
@@ -44,7 +66,7 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  // create session on Enter, cancel on Escape
+  /** Handles Enter/Escape key behavior for new session input */
   const handleCreate = (e) => {
     if (e.key === 'Enter' && newName.trim()) {
       onCreate(newName.trim());
@@ -59,6 +81,7 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
 
   return (
     <div className={styles.bar}>
+      {/* ── Left section: session dropdown & create ── */}
       <div className={styles.left}>
         <span className={styles.label}>session</span>
 
@@ -97,7 +120,7 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
           )}
         </div>
 
-        {/* toggle between input and button */}
+        {/* toggle between "new session" button and input */}
         {adding ? (
           <div ref={addingRef}>
             <input
@@ -115,9 +138,9 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
         )}
       </div>
 
-      {/* aggregate stats across all sessions */}
+      {/* ── Right section: aggregate stats & export ── */}
       <div className={styles.right}>
-        {/* export buttons — only when a session is selected */}
+        {/* export buttons — only shown when a session is selected */}
         {activeSessionId && (
           <>
             <button className={styles.exportBtn} onClick={() => onExport(activeSessionId, 'csv')}>↓ csv</button>

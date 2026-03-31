@@ -1,4 +1,16 @@
-import styles from './TopIps.module.css'
+/**
+ * @file TopIPs.jsx
+ * @description Horizontal bar list showing the top IP addresses by traffic volume.
+ *
+ * Displays the top 10 IPs ranked by total packet count (or bytes),
+ * with proportional bar widths for quick visual comparison.
+ *
+ * Props:
+ *   @prop {object[]} data - Array of IP traffic objects from the stats API,
+ *                           each entry shaped as { ip: string, total: number }.
+ */
+
+import styles from './TopIps.module.css';
 
 // bar colors cycle through accent palette by rank
 const BAR_COLORS = ["#4fc3f7", "#4fc3f7", "#a78bfa", "#a78bfa", "#22c55e", "#22c55e", "#f59e0b", "#f59e0b", "#f59e0b", "#f59e0b"];
@@ -11,6 +23,7 @@ export default function TopIPs({ data = [] }) {
     <div className={styles.panel}>
       <div className={styles.title}>top 10 IPs by traffic</div>
 
+      {/* empty state when no data is available */}
       {data.length === 0 && (
         <div className={styles.empty}>no data yet</div>
       )}
@@ -32,12 +45,13 @@ export default function TopIPs({ data = [] }) {
             />
           </div>
 
-          {/* first IP gets accent color */}
+          {/* traffic count (top IP highlighted) */}
           <span className={`${styles.count} ${i === 0 ? styles.countFirst : ''}`}>
             {row.total}
           </span>
         </div>
       ))}
+      
     </div>
   );
 }

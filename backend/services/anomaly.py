@@ -1,55 +1,95 @@
+"""
+services/anomaly.py
+───────────────────────────────────────────────────────────────────────────────
+Rule-based network anomaly detector.
+
+Rules
+─────
+1. suspicious_port -> traffic to a port associated with malware / backdoors
+2. high_volume     -> a single source IP exceeds RATE_LIMIT packets/window
+3. port_scan       -> a source probes more than PORT_SCAN_LIMIT unique ports
+                      on a single destination within PORT_SCAN_WINDOW seconds
+
+Usage
+─────
+Real-time (called from capture.py for every captured packet):
+
+    detector = AnomalyDetector()
+    alerts = detector.analyze_packet(packet_dict)
+
+Post-capture analysis of a stored session:
+
+    alerts = detector.analyze_session(session_id)
+
+Alert shape
+───────────
+    {
+        "timestamp":     ISO-8601 string,
+        "src_ip":        str,
+        "dst_ip":        str,
+        "rule_triggered": str,
+        "severity":      "high" | "medium",
+        "description":   str,
+    }
+───────────────────────────────────────────────────────────────────────────────
+"""
+
 from collections import defaultdict
 from datetime import datetime, timedelta
 from db.packets import get_packets
 
 # ── Tunable thresholds ─────────────────────────────────────────────────────────
-HIGH_VOLUME_LIMIT    = 350   # packets from one IP within the time window
+
+# Max packets a single source IP may send within HIGH_VOLUME_WINDOW seconds
+HIGH_VOLUME_LIMIT    = 350   
 HIGH_VOLUME_WINDOW   = 60    # seconds
 
-PORT_SCAN_LIMIT      = 20    # unique ports on one dst_ip within the time window
+# Max unique destination ports a source may probe on one host before triggering
+PORT_SCAN_LIMIT      = 20    
 PORT_SCAN_WINDOW     = 60    # seconds
 
+# Destination ports associate with common malware, RATs, and backdoors
 SUSPICIOUS_PORTS = {
-    4444,   # common malware / metasploit
-    6667,   # IRC botnet
-    6668,
-    6669,
-    31337,  # classic backdoor
-    1337,   # misc malware
-    9001,   # tor / misc malware
-    9002,
     1080,   # SOCKS proxy abuse
-    8080,   # often used by malware as C2
+    1337,   # misc malware
+    4444,   # Metasploit default listener
+    6667,   # IRC botnet C2
+    6668,   # IRC botnet C2
+    6669,   # IRC botnet C2
+    8080,   # common malware C2 (mimics HTTP)
+    9001,   # Tor / misc malware
+    9002,   # Tor / misc malware
     12345,  # misc backdoor
     27374,  # SubSeven trojan
+    31337,  # classic "elite" backdoor
 }
 
 
 class AnomalyDetector:
     """
-    Rule-based anomaly detector.
+    Stateful rule-based anomaly detector.
 
-    Real-time usage (call from capture.py):
-        detector = AnomalyDetector()
-        alerts = detector.analyze_packet(packet_dict)
-
-    Post-capture usage:
-        alerts = detector.analyze_session(session_id)
+    Maintains sliding-window counters in memory so that rules can fire in
+    real time without querying the database on every packet.
     """
 
     def __init__(self):
         self._reset_state()
 
+    # ── Internal helpers ───────────────────────────────────────────────────────
+
     def _reset_state(self):
-        # { src_ip: [timestamp, ...] }
+        """Clear all in-memory window counters and already-fired alert sets."""
+        # { src_ip: [datetime, ...] } – timestamps within the current window
         self._volume_window: dict[str, list[datetime]] = defaultdict(list)
 
-        # { src_ip: { dst_ip: [(port, timestamp), ...] } }
+        # { src_ip: { dst_ip: [(port, datetime), ...] } }
         self._port_attempts: dict[str, dict[str, list[tuple]]] = defaultdict(
             lambda: defaultdict(list)
         )
 
-        # track which IPs / pairs have already fired an alert (avoid duplicates)
+        # De-duplication sets: once an alert fires for a source / pair, we
+        # don't fire again until the state is reset (i.e. a new capture starts).
         self._alerted_ips: set[str] = set()
         self._alerted_pairs: set[tuple] = set()
 
@@ -57,24 +97,27 @@ class AnomalyDetector:
 
     def analyze_packet(self, packet: dict) -> list[dict]:
         """
-        Analyze a single packet in real time.
+        Evaluate a single packet against all rules in real time.
+
         Returns a (possibly empty) list of alert dicts.
         """
         return self._evaluate([packet], realtime=True)
 
     def analyze_session(self, session_id: int) -> list[dict]:
         """
-        Analyze all packets in a session from the DB.
-        Resets internal state first so previous captures don't bleed in.
-        Returns a list of alert dicts.
+        Re-analyse all packets for *session_id* from the database.
+
+        Resets internal counters first so historical runs don't bleed into
+        one another.  Returns the full list of generated alert dicts.
         """
         self._reset_state()
         packets = get_packets(session_id, limit=None, desc=False)
         return self._evaluate(packets, realtime=False)
 
-    # ── Core rules ─────────────────────────────────────────────────────────────
+    # ── Rule evaluation ────────────────────────────────────────────────────────
 
     def _evaluate(self, packets: list[dict], realtime: bool) -> list[dict]:
+        """Apply every rule to each packet and collect alerts."""
         alerts = []
         for pkt in packets:
             alerts.extend(self._check_suspicious_port(pkt))
@@ -83,6 +126,7 @@ class AnomalyDetector:
         return alerts
 
     def _check_suspicious_port(self, pkt: dict) -> list[dict]:
+        """Rule 1 - traffic to a known-malicious destination port."""
         dst_port = pkt.get('dst_port')
         if dst_port and dst_port in SUSPICIOUS_PORTS:
             return [_make_alert(
@@ -97,6 +141,7 @@ class AnomalyDetector:
         return []
 
     def _check_high_volume(self, pkt: dict) -> list[dict]:
+        """Rule 2 - a single source IP exceeds the packet-rate threshold."""
         src = pkt.get('src_ip')
         if not src:
             return []
@@ -104,10 +149,9 @@ class AnomalyDetector:
         now = _parse_ts(pkt.get('timestamp'))
         cutoff = now - timedelta(seconds=HIGH_VOLUME_WINDOW)
 
-        # drop timestamps outside the window
-        self._volume_window[src] = [
-            t for t in self._volume_window[src] if t >= cutoff
-        ]
+        # Evict timestamps that have fallen outside the sliding window.
+        window = self._volume_window[src]
+        self._volume_window[src] = [t for t in window[src] if t >= cutoff]
         self._volume_window[src].append(now)
 
         count = len(self._volume_window[src])
@@ -125,6 +169,7 @@ class AnomalyDetector:
         return []
 
     def _check_port_scan(self, pkt: dict) -> list[dict]:
+        """Rule 3 - source probes many unique ports on a single destination."""
         src      = pkt.get('src_ip')
         dst      = pkt.get('dst_ip')
         dst_port = pkt.get('dst_port')
@@ -134,10 +179,9 @@ class AnomalyDetector:
         now     = _parse_ts(pkt.get('timestamp'))
         cutoff  = now - timedelta(seconds=PORT_SCAN_WINDOW)
 
-        # drop entries outside the window
-        self._port_attempts[src][dst] = [
-            (p, t) for p, t in self._port_attempts[src][dst] if t >= cutoff
-        ]
+        # Evict stale entries for this src→dst pair.
+        attempts = self._port_attempts[src][dst]
+        self._port_attempts[src][dst] = [(p, t) for p, t in attempts[src][dst] if t >= cutoff]
         self._port_attempts[src][dst].append((dst_port, now))
 
         unique_ports = {p for p, _ in self._port_attempts[src][dst]}
@@ -156,9 +200,10 @@ class AnomalyDetector:
         return []
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# ── Module-level helpers ───────────────────────────────────────────────────────
 
 def _make_alert(pkt: dict, rule: str, severity: str, description: str) -> dict:
+    """Build a standardised alert dict from a packet and rule metadata."""
     return {
         'timestamp':     pkt.get('timestamp', datetime.now().isoformat()),
         'src_ip':        pkt.get('src_ip'),
@@ -170,7 +215,7 @@ def _make_alert(pkt: dict, rule: str, severity: str, description: str) -> dict:
 
 
 def _parse_ts(ts) -> datetime:
-    """Parse an ISO timestamp string, falling back to now."""
+    """Parse an ISO-8601 timestamp string, falling back to *now* on failure."""
     if not ts:
         return datetime.now()
     try:

@@ -1,3 +1,54 @@
+"""
+services/network_monitor.py
+───────────────────────────────────────────────────────────────────────────────
+ARP-based network device scanner.
+
+Usage
+─────
+Active scanning of the local subnet:
+
+    from network_monitor import active_scan
+    devices = active_scan('192.168.1.0/24')
+
+Start passive monitoring:
+
+    from network_monitor import start_passive_sniffer, stop_passive_sniffer
+    start_passive_sniffer()
+    # devices will be automatically updated in the background
+    stop_passive_sniffer()  # stop when done
+
+Recording packet statistics (called from capture.py):
+
+    from network_monitor import record_packet
+    record_packet(src_ip, dst_ip, size)
+
+Accessing or managing the device store:
+
+    from network_monitor import get_devices, clear_devices, get_subnet
+    all_devices = get_devices()
+    clear_devices()         # clear store for a new session
+    subnet = get_subnet()   # auto-detect local subnet
+
+Device record format
+────────────────────
+    {
+        "ip":           str,
+        "mac":          str,
+        "manufacturer": str,
+        "first_seen":   ISO-8601 string,
+        "last_seen":    ISO-8601 string,
+        "bytes_seen":   int,
+        "packet_count": int,
+    }
+
+State & concurrency
+───────────────────
+- Thread-safe access to the device store using a Lock.
+- Passive sniffer runs in a daemon thread.
+- _mac_parser is instantiated once at module load (slow, cached for efficiency).
+───────────────────────────────────────────────────────────────────────────────
+"""
+
 import threading
 import ipaddress
 import socket
@@ -45,7 +96,7 @@ def _upsert_device(ip: str, mac: str) -> None:
                 'packet_count': 0,
             }
         else:
-            # update IP in case it changed (DHCP) and refresh last_seen
+            # Update IP in case it changed (DHCP) and refresh last_seen
             _devices[mac]['ip']        = ip
             _devices[mac]['last_seen'] = now
 
@@ -147,12 +198,12 @@ def get_subnet() -> str:
     Falls back to 192.168.1.0/24 if detection fails.
     """
     try:
-        # get local IP by connecting a UDP socket (no data sent)
+        # Get local IP by connecting a UDP socket (no data sent)
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.connect(('8.8.8.8', 80))
         local_ip = s.getsockname()[0]
         s.close()
-        # assume /24 subnet from local IP
+        # Assume /24 subnet from local IP
         network = ipaddress.IPv4Network(f'{local_ip}/24', strict=False)
         return str(network)
     except Exception:

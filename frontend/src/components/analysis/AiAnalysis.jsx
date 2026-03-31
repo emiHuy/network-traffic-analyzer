@@ -1,12 +1,39 @@
+/**
+ * @file AiAnalysis.jsx
+ * @description AI-powered analysis panel for NETAnalyzer.
+ *
+ * Provides two analysis features powered by Google Gemini:
+ *   1. Session Summary  — a high-level overview of captured traffic
+ *      (protocols, top IPs, volume, and alert count).
+ *   2. Alert Explainer — a per-alert card that explains what triggered
+ *      the anomaly, its risk level, and a recommended action.
+ *
+ * API key handling:
+ *   - If the backend has GEMINI_API_KEY set in its .env, it is used
+ *     automatically and the key input UI is hidden.
+ *   - Otherwise the user enters a key in the browser; it is persisted
+ *     to localStorage (key: "gemini_api_key") and sent with each request
+ *     to the local backend — never to Google directly.
+ *
+ * Props:
+ *   @prop {boolean}  isVisible   - Controls display (tab switching).
+ *   @prop {object}   stats       - Session stats from the WebSocket / REST API.
+ *   @prop {object[]} alerts      - Anomaly alert objects for the active session.
+ *   @prop {number}   sessionId   - Active session ID (resets AI results on change).
+ *   @prop {boolean}  isCapturing - Disables analysis buttons during live capture.
+ */
+
 import { useState, useCallback, useEffect } from 'react';
 import { analyzeSession, analyzeAlert, fetchAiStatus } from '../../api/client.js';
 import { useToast } from '../ui/ToastContext.jsx';
 import styles from './AiAnalysis.module.css';
 
+/** localStorage key used to persist the user-supplied Gemini API key. */
 const LS_KEY = 'gemini_api_key';
 
 // ── Markdown renderer ─────────────────────────────────────────────────────────
 
+// renders Gemini response text — supports **bold** and blank-line spacing
 function Markdown({ text }) {
   if (!text) return null;
   return (
@@ -28,6 +55,7 @@ function Markdown({ text }) {
 
 // ── Loading skeleton ──────────────────────────────────────────────────────────
 
+// animated placeholder bars shown while Gemini is generating a response
 function Skeleton() {
   return (
     <div className={styles.skeletonWrap}>
@@ -40,11 +68,13 @@ function Skeleton() {
 
 // ── API key input (shared by setup screen + change flow) ──────────────────────
 
+// controlled key input with show/hide toggle — shared by setup screen and change flow
 function KeyInput({ onSave, onCancel, autoFocus = true, currentValue = '' }) {
   const toast = useToast();
   const [val, setVal] = useState(currentValue);
   const [show, setShow] = useState(false);
 
+  // validate, persist to localStorage, then notify parent
   function save() {
     const trimmed = val.trim();
     if (!trimmed) { toast.error('Please enter an API key', 'Field is blank.'); return; }
@@ -83,6 +113,7 @@ function KeyInput({ onSave, onCancel, autoFocus = true, currentValue = '' }) {
 
 // ── First-time setup screen ───────────────────────────────────────────────────
 
+// full-panel prompt shown when neither an env key nor a browser key is available
 function ApiKeySetup({ onSave }) {
   return (
     <div className={styles.keySetup}>
@@ -102,9 +133,10 @@ function ApiKeySetup({ onSave }) {
 
 // ── Alert explainer card ──────────────────────────────────────────────────────
 
+// single alert card with an on-demand Gemini explanation; manages its own fetch state
 function AlertExplainer({ alert, apiKey, isCapturing }) {
   const toast = useToast();
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(null); // Gemini response text
   const [loading, setLoading] = useState(false);
 
   async function explain() {
@@ -122,6 +154,7 @@ function AlertExplainer({ alert, apiKey, isCapturing }) {
 
   return (
     <div className={`${styles.alertCard} ${isHigh ? styles.alertHigh : styles.alertMedium}`}>
+      {/* ── card header: rule badge, severity, explain button ── */}
       <div className={styles.alertHeader}>
         <div className={styles.alertMeta}>
           <span className={styles.ruleBadge}>{alert.rule_triggered}</span>
@@ -134,10 +167,13 @@ function AlertExplainer({ alert, apiKey, isCapturing }) {
         </button>
       </div>
 
+      {/* ── alert detail ── */}
       <p className={styles.alertDesc}>{alert.description}</p>
       <div className={styles.alertSrc}>{alert.src_ip} → {alert.dst_ip}</div>
 
+      {/* skeleton shown only while first load is in progress */}
       {loading && !result && <Skeleton />}
+      {/* Gemini result block — rendered after the first successful response */}
       {result && (
         <div className={styles.aiResult}>
           <span className={styles.aiLabel}>✦ gemini analysis</span>
@@ -152,31 +188,31 @@ function AlertExplainer({ alert, apiKey, isCapturing }) {
 
 export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId, isCapturing }) {
   const toast = useToast();
-  // null = env key active (no UI key needed), string = user-provided key
+
+  // null = no browser key; rely on env key or show setup screen
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(LS_KEY) ?? null);
   const [envConfigured, setEnvConfigured] = useState(false);
   const [changingKey, setChangingKey] = useState(false);
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
 
-  // Check if backend has an env key configured
+  // check whether the backend has a GEMINI_API_KEY env var configured
   useEffect(() => {
     fetchAiStatus()
       .then(({ configured }) => setEnvConfigured(configured))
       .catch(() => setEnvConfigured(false));
   }, []);
 
-  // Clear AI responses when session changes
+  // clear stale AI results when the active session changes
   useEffect(() => {
     setSummary(null);
     setSummaryLoading(false);
   }, [sessionId]);
 
-  // Ready if env key exists OR user has provided one
+  // ready when either the env key or a browser key is available
   const ready = envConfigured || !!apiKey;
-  // Key to send with requests — null means backend will use its env key
+  // null tells the backend to use its own env key instead
   const activeKey = envConfigured ? null : apiKey;
-
   const hasData = (stats?.total_packets ?? 0) > 0;
 
   const generateSummary = useCallback(async () => {
@@ -208,13 +244,11 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId, i
   return (
     <div className={styles.panel} style={{ display: isVisible ? '' : 'none' }}>
 
-      {/* ── No key anywhere — show setup ── */}
       {!ready && <ApiKeySetup onSave={handleNewKey} />}
 
-      {/* ── Ready ── */}
       {ready && (
         <>
-          {/* Banner */}
+          {/* key banner — switches to an inline form when changing the key */}
           {changingKey ? (
             <div className={styles.keyChangeBanner}>
               <span className={styles.keyChangeLabel}>new api key</span>
@@ -225,7 +259,7 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId, i
               {envConfigured ? (
                 <>
                   <span className={styles.keyActive}>✦ gemini api · env key active</span>
-                  {/* if they also have a localStorage key, offer to clear it */}
+                 {/* offer to clear a redundant localStorage key if one exists */}
                   {apiKey && (
                     <button className={styles.clearKeyBtn} onClick={clearKey}>
                       clear ui key
@@ -263,8 +297,11 @@ export default function AiAnalysis({ isVisible, stats, alerts = [], sessionId, i
             {!isCapturing && !hasData && !summary && (
               <div className={styles.empty}>no session data yet — start a capture first</div>
             )}
+
+            {/* skeleton only on initial load; keeps card stable on re-analyze */}
             {summaryLoading && !summary && <Skeleton />}
 
+            {/* result card */}
             {summary && (
               <div className={styles.summaryCard}>
                 <div className={styles.summaryMeta}>

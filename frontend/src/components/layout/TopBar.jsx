@@ -1,3 +1,16 @@
+/**
+ * @file TopBar.jsx
+ * @description Top application bar showing capture status, session timer, and start/stop controls.
+ *
+ * Props:
+ *   @prop {number|string}  sessionId       - ID of the currently selected session (required to start capture).
+ *   @prop {boolean}        isCapturing     - Whether live packet capture is active.
+ *   @prop {boolean}        sessionHasData  - Whether the active session already contains data.
+ *   @prop {Function}       onStart         - Callback to start capture.
+ *   @prop {Function}       onStop          - Callback to stop capture.
+ *   @prop {boolean}        isStopping      - Whether a stop request is in progress.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 import styles from './TopBar.module.css';
 
@@ -11,7 +24,10 @@ export default function TopBar({ sessionId, isCapturing, sessionHasData, onStart
   const [elapsed, setElapsed] = useState(0);
   const intervalRef = useRef(null);
 
-  // start/stop elapsed timer when capture state changes
+  /**
+   * Starts or stops the capture timer when capture state changes.
+   * Resets timer when starting a new capture.
+   */
   useEffect(() => {
     if (isCapturing) {
       setElapsed(0);
@@ -27,7 +43,8 @@ export default function TopBar({ sessionId, isCapturing, sessionHasData, onStart
       <div className={styles.logo}>
         Net<span className={styles.logoMuted}>Analyzer</span>
       </div>
-
+  
+      {/* Capture status display */}
       <div className={styles.status}>
         {isStopping ? (
           <span>stopping…</span>
@@ -41,6 +58,7 @@ export default function TopBar({ sessionId, isCapturing, sessionHasData, onStart
         )}
       </div>
 
+      {/* Start / Stop buttons */}
       <div className={styles.btns}>
         <button
           className={`${styles.btnBase} ${styles.btnStart} ${isCapturing || !sessionId || sessionHasData ? styles.btnDisabled : ''}`}

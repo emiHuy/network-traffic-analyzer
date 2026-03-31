@@ -1,10 +1,34 @@
+/**
+ * @file PacketFeed.jsx
+ * @description Live packet feed panel displayed at the bottom of the dashboard.
+ *
+ * Renders the most recent captured packets in a scrollable table with five
+ * columns: source IP, destination IP, protocol badge, size, and timestamp.
+ *
+ * Features:
+ *   - Collapse toggle — shrinks the list to COLLAPSED_LIMIT rows; a "show more"
+ *     prompt at the bottom expands it again.
+ *   - Search button — calls the onSearch prop to open the PacketSearch modal,
+ *     which loads the full session packet list from the API.
+ *   - Protocol badges — each protocol is rendered as a coloured pill derived
+ *     from PROTO_NAMES / PROTO_COLOURS so the palette stays consistent across
+ *     the dashboard.
+ *
+ * Props:
+ *   @prop {object[]} data      - Array of packet objects from the stats API.
+ *   @prop {number}   limit     - Maximum rows to display when expanded (default 18).
+ *   @prop {number}   sessionId - Active session ID, passed through to search.
+ *   @prop {function} onSearch  - Callback fired when the search button is clicked.
+ */
+
 import { useState } from 'react';
 import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
 import styles from './PacketFeed.module.css';
 
+/** Number of rows shown when the feed is collapsed. */
 const COLLAPSED_LIMIT = 6;
 
-// resolves protocol number or string to a colored badge
+// coloured protocol badge — falls back to 'UNK' if the protocol is unrecognised
 function ProtoBadge({ protocol }) {
   const name = typeof protocol === 'number' ? (PROTO_NAMES[protocol] ?? 'UNK') : (protocol ?? 'UNK');
   const colour = PROTO_COLOURS[name];
@@ -21,7 +45,7 @@ function ProtoBadge({ protocol }) {
   );
 }
 
-// formats ISO timestamp to HH:MM:SS.mmm
+// formats ISO timestamp to HH:MM:SS.mmm; returns '—' for missing values
 function formatTimestamp(ts) {
   if (!ts) return '—';
   try {
@@ -40,12 +64,13 @@ function formatTimestamp(ts) {
 
 export default function PacketFeed({ data = [], limit = 18, sessionId, onSearch}) {
   const [collapsed, setCollapsed] = useState(false);
-  // cap rows shown to limit
+  
+  // slice to COLLAPSED_LIMIT when collapsed, otherwise respect the limit prop
   const rows = (collapsed ? data.slice(0, COLLAPSED_LIMIT) : data.slice(0, limit));
 
   return (
     <div className={styles.panel}>
-      {/* title + total count */}
+      {/* title + packet count + search / collapse controls */}
       <div className={styles.titleRow}>
         <div className={styles.title}>live packet feed</div>
         <div className={styles.titleRight}>
@@ -70,7 +95,7 @@ export default function PacketFeed({ data = [], limit = 18, sessionId, onSearch}
         <div className={styles.empty}>no packets captured yet</div>
       )}
 
-      {/* packet rows */}
+      {/* packet rows — last row omits the bottom border via rowLast */}
       {rows.map((pkt, i) => (
         <div
           key={i}
@@ -84,6 +109,7 @@ export default function PacketFeed({ data = [], limit = 18, sessionId, onSearch}
         </div>
       ))}
 
+      {/* expand prompt — only shown when collapsed and there are hidden rows */}
       {collapsed && data.length > COLLAPSED_LIMIT && (
         <div className={styles.more} onClick={() => setCollapsed(false)}>
           show more

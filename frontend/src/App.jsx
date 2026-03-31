@@ -1,3 +1,36 @@
+/**
+ * @file App.jsx
+ * @description
+ * Root application component. Manages global state and orchestrates the four
+ * primary views: Dashboard, Network, Alerts, and AI Analysis.
+ *
+ * Responsibilities:
+ *   - Maintains global application state
+ *   - Handles session selection and live capture control
+ *   - Aggregates statistics for the dashboard
+ *   - Manages network topology scanning
+ *   - Tracks alerts and triggers toast notifications
+ *   - Cleans up WebSocket connections on unmount
+ *
+ * State Architecture:
+ * ─────────────────────────
+ *  sessions      – Array of all sessions fetched from the database
+ *  sessionId     – Currently-selected session ID (null if none)
+ *  stats         – Aggregated dashboard metrics for the active session
+ *  capturing     – Boolean: whether a live capture is currently running
+ *  stopping      – Boolean flag while a stop request is in-flight
+ *  topology      – Network topology object: { nodes: [...] }
+ *  scanning      – Boolean: whether an ARP scan is in-flight (controls overlay)
+ *  alerts        – List of anomaly alerts for the active session
+ *  seenAlertIds  – Ref-set for de-duplicating toast notifications
+ *  wsCleanup     – Ref storing WebSocket teardown function
+ *
+ * Notes:
+ *   - Toast notifications are triggered for new alerts that are not in seenAlertIds
+ *   - ARP scans and live capture are mutually coordinated with overlay indicators
+ *   - All state updates are centralized here for predictable view behavior
+ */
+
 import { useState, useRef, useEffect } from 'react';
 
 import { 
@@ -24,66 +57,64 @@ import AlertsPanel  from './components/alerts/AlertsPanel.jsx';
 import AiAnalysis   from './components/analysis/AiAnalysis.jsx';
 import { useToast } from './components/ui/ToastContext.jsx';
 
-import styles from './App.module.css'
+import styles from './App.module.css';
 
-function App() {
+// ── Stale-scan threshold: warn the user if their topology is older than this ──
+const STALE_SCAN_MS = 2 * 60 * 60 * 1000; // 2 hours
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function App() {
   const toast = useToast();
   
   // ── Navigation ────────────────────────────────────────────────────────────
   const [activeView, setActiveView] = useState('dashboard');
 
-  // ── Sessions ──────────────────────────────────────────────────────────────
+  // ── Session state ─────────────────────────────────────────────────────────
   const [sessions, setSessions] = useState([]);      
   const [sessionId, setSessionId] = useState(null);  
   const [stats, setStats] = useState(null);         
 
-  // ── Capture ───────────────────────────────────────────────────────────────
+  // ── Capture state ─────────────────────────────────────────────────────────
   const [capturing, setCapturing] = useState(false);
   const wsCleanup = useRef(null);        
   const [stopping, setStopping] = useState(false);
 
-  // ── Topology ──────────────────────────────────────────────────────────────
+  // ── Network topology ──────────────────────────────────────────────────────
   const [topology, setTopology] = useState({ nodes: [] });
   const [scanning, setScanning] = useState(false);
   const lastScanTime = useRef(null);
+  // Mirror in state so the NetworkGraph label re-renders when the time changes.
   const [lastScanDisplay, setLastScanDisplay] = useState(null); // state copy so label re-renders
 
   // ── Alerts ────────────────────────────────────────────────────────────────
   const [alerts, setAlerts] = useState([]);
   const seenAlertIds = useRef(new Set());
 
+  // True if the active session already has captured packets (prevents re-capture).
   const sessionHasData = sessions.find(s => s.id === sessionId)?.packet_count > 0;
 
-  // ── Initial load ──────────────────────────────────────────────────────────
+  // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    async function load() {
-      setSessions(await fetchSessions());
-    }
-    load();
+    fetchSessions()
+      .then(setSessions)
+      .catch((e) => toast.error('Failed to load sessions', e.message));
   }, []);
 
-  // WebSocket cleanup on unmount
+  // Tear down the WebSocket when the component unmounts.
   useEffect(() => {
-    return () => {
-      if (wsCleanup.current) {
-        wsCleanup.current();
-        wsCleanup.current = null;
-      }
-    };
+    return () => wsCleanup.current?.()
   }, []);
 
-  // ── Scan ──────────────────────────────────────────────────────────────────
+  // ── Network scan ──────────────────────────────────────────────────────────
+
   async function onScan() {
-    if (!sessionId) {
-      toast.error('Scan failed', 'Must create a session first.');
-      return;
-    }
     setScanning(true);
     try {
       const result = await triggerScan();
       setTopology({ nodes: result.nodes });
       lastScanTime.current = Date.now();
-      setLastScanDisplay(Date.now()); // state update triggers re-render so label updates
+      setLastScanDisplay(Date.now()); /// triggers re-render of the "last scan" label
     } catch (e) {
       toast.error('Scan failed', e?.message ?? 'Could not complete network scan.');
     } finally {
@@ -91,20 +122,22 @@ function App() {
     }
   }
 
-  // ── Capture ───────────────────────────────────────────────────────────────
+  // ── Capture start ─────────────────────────────────────────────────────────
+
   async function onStart() {
-    const twoHours = 2 * 60 * 60 * 1000;
     const scanAge  = lastScanTime.current
         ? Date.now() - lastScanTime.current
         : null;
 
     if (!lastScanTime.current) {
-        // no scan data — silent auto-scan first
+        // First capture in this session — silently run a background scan
+        // so the network map is ready when the user switches to it.
         await onScan();
-    } else if (scanAge > twoHours) {
+    } else if (scanAge > STALE_SCAN_MS) {
         toast.warning('Stale scan data', 'Network map is over 2 hours hold. Consider rescanning.');
-        const rescan = confirm('Rescan?');
-        if (rescan) await onScan();
+        if (window.confirm('Rescan the network before starting capture?')) {
+          await onScan();
+        }
     }
 
     try { 
@@ -114,35 +147,38 @@ function App() {
       return;
     }
 
+    // Reset alert de-duplication for this new capture run.
     seenAlertIds.current = new Set();
 
+    // Open the live WebSocket feed.
     wsCleanup.current = subscribeToStats(sessionId, (data) => {
-      console.log(data);
       setStats(data.stats);
 
-      // overlay live packet activity onto topology nodes
+      // Overlay live traffic data onto the topology nodes.
       if (data.topology?.length) {
         setTopology(prev => ({ ...prev, nodes: data.topology }));
       }
 
+      // Process incoming alerts, showing a toast for each new one.
       if (data.alerts?.length) {
         setAlerts(data.alerts);
-
-        data.alerts.forEach(alert => {
+        for (const alert of data.alerts) {
           if (!seenAlertIds.current.has(alert.id)) {
             seenAlertIds.current.add(alert.id);
             toast.alert(
-              `Anomaly: ${alert.rule_triggered.replace(/_/g, ' ')}`,
-              alert.description
+                `Anomaly: ${alert.rule_triggered.replace(/_/g, ' ')}`,
+                alert.description,
             );
           }
-        });
+        }
       }
     });
     
     setCapturing(true);
     toast.info('Capture started', `Listening on network · session active.`);
   }
+
+  // ── Capture stop ──────────────────────────────────────────────────────────
 
   async function onStop() {
     setStopping(true);
@@ -155,20 +191,28 @@ function App() {
       return;
     }
     
-    if (wsCleanup.current) {
-      wsCleanup.current();
-      wsCleanup.current = null;
-    }
+    // Close the WebSocket.
+    wsCleanup.current();
+    wsCleanup.current = null;
+    
     setCapturing(false);
     setStopping(false);
 
-    setSessions(await fetchSessions());
-    setTopology(await fetchTopology(sessionId));
-    setAlerts(await fetchAlerts(sessionId));
+    // Refresh data from the DB now that the session snapshot is complete.
+    const [updatedSessions, snap, sessionAlerts] = await Promise.all([
+      fetchSessions(),
+      fetchTopology(sessionId),
+      fetchAlerts(sessionId),
+    ])
+    setSessions(updatedSessions);
+    setTopology(snap);
+    setAlerts(sessionAlerts);
+
     toast.info('Capture stopped', 'Session data saved.');
   }
 
   // ── Session management ────────────────────────────────────────────────────
+
   async function onCreate(name) {
     if (sessions.some(s => s.name === name)) {
       toast.error('Duplicate session name', `A session named "${name}" already exists.`);
@@ -176,13 +220,14 @@ function App() {
     }
     try {
       const { session_id } = await createSession(name);
-      setSessions(await fetchSessions());
+      const updated = await fetchSessions();
+      setSessions(updated);
       setSessionId(session_id);
       setStats(await fetchStats(session_id));
       setTopology({ nodes: [] })
       setAlerts([]);
       lastScanTime.current = null;
-      toast.success('Session created', `Session "${name}" added to database.`);
+      toast.success('Session created', `Session "${name}" added.`);
     } catch (e) {
       toast.error('Failed to create session', e?.message ?? 'Unknown error.');
     }
@@ -190,7 +235,7 @@ function App() {
 
   async function onDelete(id) {
     if (id == sessionId && capturing) {
-      toast.error('Cannot delete during active session', 'Stop the capture before deleting.');
+      toast.error('Cannot delete during active session', 'Stop the capture first.');
       return;
     }
     try {
@@ -202,7 +247,7 @@ function App() {
         setAlerts([]);
       }
       setSessions(await fetchSessions());
-      toast.success('Session deleted', `Session removed from database.`);
+      toast.success('Session deleted', `Removed from database.`);
     } catch (e) {
       toast.error('Failed to delete session', e?.message ?? 'Unknown error.');
     }
@@ -211,10 +256,15 @@ function App() {
   async function onSelect(id) {
     if (id == sessionId) return;
     try {
+      const [newStats, topo, sessionAlerts] = await Promise.all([
+        fetchStats(id),
+        fetchTopology(id),
+        fetchAlerts(id),
+      ]);
       setSessionId(id);
-      setStats(await fetchStats(id));
-      setTopology(await fetchTopology(id));
-      setAlerts(await fetchAlerts(id));
+      setStats(newStats);
+      setTopology(topo);
+      setAlerts(sessionAlerts);
       lastScanTime.current = null;
     } catch (e) {
       toast.error('Failed to load session', e?.message ?? 'Unknown error.');
@@ -223,17 +273,18 @@ function App() {
 
   async function onExport(id, format) {
     try {
-      const exp = await exportSession(id, format);
-      toast.success('Export started', `Downloading session as .${format}.`);
-      return exp;
+      exportSession(id, format);
+      toast.success('Export started', `Downloading as .${format}.`);
     } catch (e) {
       toast.error('Export failed', e?.messsage ?? 'Unknown error.');
     }
   }
   
   // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className={styles.app}>
+      {/* Full-screen overlay shown while the ARP scan is running */}
       {scanning && (
         <div className={styles.scanningOverlay}>
           <div className={styles.scanningBox}>
@@ -241,14 +292,16 @@ function App() {
           </div>
         </div>
       )}
+
       <TopBar
         sessionId={sessionId}
-        isCapturing={capturing}
         sessionHasData={sessionHasData}
         onStart={onStart}
         onStop={onStop}
+        isCapturing={capturing}
         isStopping={stopping}
       />
+
       <SessionBar
         sessions={sessions}
         activeSessionId={sessionId}
@@ -258,44 +311,48 @@ function App() {
         onExport={onExport}
         isCapturing={capturing}
       />
+
       <NavBar
         activeView={activeView}
         onViewChange={setActiveView}
-        isCapturing={capturing}
         sessionId={sessionId}
         numAlerts={alerts.length}
+        isCapturing={capturing}
       />
+
       <Dashboard 
         isVisible={activeView === 'dashboard'}
-        stats={stats}
         sessionId={sessionId}
+        stats={stats}
         fetchAllPackets={fetchAllPackets}
       />
+
       <NetworkGraph
         key={sessionId}
         isVisible={activeView === 'network'}
-        nodes={topology.nodes}
+        sessionHasData={sessionHasData}
         sessionStats={stats?.top_10_ips}
-        isCapturing={capturing}
+        nodes={topology.nodes}
         onScan={onScan}
         scanning={scanning}
         lastScanTime={lastScanDisplay}
-        sessionHasData={sessionHasData}
-        />
-      <AlertsPanel
-        isVisible={activeView === 'alerts'}
-        alerts={alerts}
-        sessionId={sessionId}
-      />
-      <AiAnalysis 
-        isVisible={activeView === 'analysis'}
-        stats={stats}
-        alerts={alerts}
-        sessionId={sessionId}
         isCapturing={capturing}
       />
+
+      <AlertsPanel
+        isVisible={activeView === 'alerts'}
+        sessionId={sessionId}
+        alerts={alerts}
+      />
+
+      <AiAnalysis 
+        isVisible={activeView === 'analysis'}
+        sessionId={sessionId}
+        stats={stats}
+        alerts={alerts}
+        isCapturing={capturing}
+      />
+
     </div>
   )
 }
-
-export default App

@@ -1,8 +1,23 @@
+/**
+ * @file NetworkGraph.jsx
+ * @description Interactive network topology visualization showing devices and router connections.
+ *
+ * Props:
+ *   @prop {object[]} nodes          - Array of device objects { ip, mac, manufacturer, bytes_seen, packet_count, last_seen }.
+ *   @prop {boolean} isVisible       - Whether the network graph panel is visible.
+ *   @prop {boolean} isCapturing     - Whether live capture is currently active.
+ *   @prop {Function} onScan         - Callback to initiate a network scan.
+ *   @prop {boolean} scanning        - Whether a scan is currently in progress.
+ *   @prop {string|Date} lastScanTime- Timestamp of the last completed scan.
+ *   @prop {boolean} sessionHasData  - Whether the current session already contains captured data.
+ */
+
 import { useEffect, useRef, useState, useCallback } from 'react';
 import styles from './NetworkGraph.module.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
+// Returns node color for live capture state.
 function nodeColor(device, isCapturing) {
     if (isCapturing) {
         // during capture: colour by recency
@@ -16,25 +31,29 @@ function nodeColor(device, isCapturing) {
     }
 }
 
+// Returns node color after capture based on bytes seen.
 function postCaptureColor(device, maxBytes) {
-    if (maxBytes === 0) return '#475569';
+    if (maxBytes === 0 || !device.bytes_seen) return '#475569';
     const ratio = device.bytes_seen / maxBytes;
-    if (ratio > 0.6) return '#22c55e';
-    if (ratio > 0.2) return '#f59e0b';
-    return '#475569';
+    if (ratio >= 0.5) return '#22c55e';
+    if (ratio >= 0.2) return '#f59e0b';
+    return '#769acd';
 }
 
+/** Returns seconds elapsed since ISO timestamp. */
 function secondsSince(isoString) {
     if (!isoString) return 9999;
     return (Date.now() - new Date(isoString).getTime()) / 1000;
 }
 
+/** Formats bytes for display. */
 function formatBytes(bytes) {
     if (bytes >= 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
     if (bytes >= 1e3) return Math.round(bytes / 1e3) + ' KB';
     return bytes + ' B';
 }
 
+/** Formats a timestamp into human-readable "ago" string. */
 function formatSince(isoString) {
     if (!isoString) return '—';
     const secs = Math.round(secondsSince(isoString));
@@ -43,6 +62,7 @@ function formatSince(isoString) {
     return Math.round(secs / 3600) + 'hr ago';
 }
 
+/** Determines if a device is a router based on IP or manufacturer. */
 function isRouter(device) {
     const m = (device.manufacturer || '').toLowerCase();
     return (
@@ -334,7 +354,8 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
                         idle
                     </span>
                     <span className={styles.legendMuted}>
-                        {isCapturing ? 'edge thickness = current traffic' : 'node size = session total'}
+                        {isCapturing ? 'edge thickness = current traffic. ' : 'node size = session total. '}
+                        {'Internal traffic is counted for both sender and receiver.'}
                     </span>
                 </div>
                 <span className={styles.lastScan}>{lastScanLabel}</span>

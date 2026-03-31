@@ -1,3 +1,12 @@
+/**
+ * @file ProtocolBreakdown.jsx
+ * @description Donut chart + legend showing packet counts by protocol.
+ *
+ * Props:
+ *   @prop {object[]} data - Protocol breakdown array from the stats API,
+ *                           each entry shaped as { protocol: number, total: number }.
+ */
+
 import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts';
 import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
 import styles from './ProtocolBreakdown.module.css';
@@ -15,7 +24,7 @@ const CustomTooltip = ({ active, payload }) => {
 export default function ProtocolBreakdown({ data = [] }) {
   const total = data.reduce((sum, d) => sum + d.total, 0);
 
-  // add fill color to each slice
+  // resolve protocol number to name and look up its accent colour
   const dataWithColors = data.map((d, i) => ({
     protocol: PROTO_NAMES[d.protocol] || 'UNK',
     total: d.total,
@@ -48,7 +57,6 @@ export default function ProtocolBreakdown({ data = [] }) {
           </ResponsiveContainer>
 
           <div className={styles.legend}>
-            {/* one row per protocol */}
             {dataWithColors.map((row, i) => (
               <div key={row.protocol} className={styles.legendItem}>
                 {/* dot color matches pie slice — set inline */}
