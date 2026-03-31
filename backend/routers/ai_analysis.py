@@ -1,3 +1,11 @@
+"""
+routers/ai_analysis.py
+
+Endpoints for Gemini-powered AI analysis of sessions and individual alerts.
+All requests are proxied through the backend so the API key is never
+exposed directly to the browser.
+"""
+
 import os
 import json
 import urllib.request
@@ -8,6 +16,8 @@ from pydantic import BaseModel
 
 router = APIRouter()
 
+# Optionally set server-side via GEMINI_API_KEY env var.
+# If blank, the frontend must supply a key with each request.
 _GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 _GEMINI_URL = (
@@ -42,6 +52,14 @@ class AlertAnalysisRequest(BaseModel):
 # ── Gemini helper ──────────────────────────────────────────────────────────────
 
 def _call_gemini(prompt: str, api_key: str) -> str:
+    """
+    Send a prompt to the Gemini API and return the response text.
+
+    Raises:
+        400 if no API key is provided
+        502 on Gemini API errors or unexpected response format
+    """
+
     if not api_key or not api_key.strip():
         raise HTTPException(status_code=400, detail="Gemini API key is required.")
 
@@ -83,6 +101,7 @@ def _call_gemini(prompt: str, api_key: str) -> str:
 # ── Prompt builders ────────────────────────────────────────────────────────────
 
 def _session_prompt(r: SessionAnalysisRequest) -> str:
+    """Build a structured analysis prompt from session stats and alert data."""
     return f"""You are a network security analyst. Analyze this packet capture session concisely.
 
 SESSION STATS:
@@ -114,6 +133,7 @@ Be direct and technical. Keep total response under 250 words."""
 
 
 def _alert_prompt(r: AlertAnalysisRequest) -> str:
+    """Build an explanation prompt for a single anomaly alert."""
     return f"""You are a network security expert. Explain this alert briefly.
 
 ALERT:
@@ -143,16 +163,27 @@ Keep total response under 120 words."""
 
 @router.get("/status")
 def ai_status():
-    """Frontend uses this to decide whether to show the key input UI."""
+    """
+    Return whether a server-side Gemini key is configured.
+    """
     return {"configured": bool(_GEMINI_API_KEY)}
+
 
 @router.post("/analyze/session")
 def analyze_session(body: SessionAnalysisRequest):
+    """
+    Generate an AI summary of a capture session.
+    Returns markdown-formatted analysis from Gemini.
+    """
     text = _call_gemini(_session_prompt(body), body.api_key)
     return {"result": text}
 
 
 @router.post("/analyze/alert")
 def analyze_alert(body: AlertAnalysisRequest):
+    """
+    Generate an AI explanation of a single anomaly alert.
+    Returns markdown-formatted explanation from Gemini.
+    """
     text = _call_gemini(_alert_prompt(body), body.api_key)
     return {"result": text}
