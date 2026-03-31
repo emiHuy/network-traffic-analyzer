@@ -1,3 +1,10 @@
+"""
+db/models.py
+───────────────────────────────────────────────────────────────────────────────
+SQLAlchemy table definitions for all four database tables.
+All timestamps are stored as ISO 8601 strings.
+"""
+
 from sqlalchemy import Table, Column, String, Integer, MetaData
 
 metadata = MetaData()

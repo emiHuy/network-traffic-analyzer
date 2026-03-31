@@ -1,32 +1,78 @@
+"""
+services/stats.py
+───────────────────────────────────────────────────────────────────────────────
+Network packet statistics and local IP analysis.
+
+Provides functions to extract per-session metrics from captured packets,
+including top local IPs, protocol breakdowns, packet rates, average sizes,
+and active hosts.
+
+Usage
+─────
+Calculate stats for a session:
+
+    from db.stats import get_all_stats
+
+    stats = get_all_stats(session_id=123, limit=50)
+    print(stats['top_10_ips'])
+    print(stats['protocol_breakdown'])
+    print(stats['active_hosts'])
+
+Notes
+─────
+- Local IP detection relies on dynamically detecting the subnet using
+  `network_scan.get_subnet()`. Defaults to /24 if detection fails.
+- Only local IPs are included in top IPs and active host calculations.
+───────────────────────────────────────────────────────────────────────────────
+"""
+
 from sqlalchemy import select, func
 from db import engine
 from db.models import packet_table
 from db.packets import get_packets, count_packets
+from network_scan import get_subnet
 import ipaddress
 
-LOCAL_NETWORKS = [
-    ipaddress.ip_network('192.168.0.0/16'),
-    ipaddress.ip_network('10.0.0.0/8'),
-    ipaddress.ip_network('172.16.0.0/12'),
-]
-
 def _is_local(ip: str) -> bool:
+    """
+    Determine if an IP address belongs to the local network.
+
+    Attempts to detect the local subnet dynamically using `get_subnet()`.
+    Falls back to /24 if detection fails. Excludes multicast, network, and
+    broadcast addresses.
+
+    Returns True if IP is local, False otherwise.
+    """
     try:
         addr = ipaddress.ip_address(ip)
+        
         if addr.is_multicast:
             return False
-        for network in LOCAL_NETWORKS:
-            if addr in network:
-                # exclude network address and broadcast address
-                if addr == network.network_address or addr == network.broadcast_address:
-                    return False
-                return True
+
+        # Get local subnet from system, default to /24 if detection fails
+        try:
+            subnet = ipaddress.ip_network(get_subnet(), strict=False)
+        except Exception:
+            subnet = ipaddress.ip_network(f"{addr}/24", strict=False)
+
+        # Check if IP is inside subnet
+        if addr in subnet:
+            if addr == subnet.network_address or addr == subnet.broadcast_address:
+                return False
+            return True
+        
         return False
+
     except ValueError:
+        # Invalid IP string
         return False
     
 
-def top_10_ips(session_id: int, limit: int = 10) -> list[dict]:
+def _top_10_ips(session_id: int, limit: int = 10) -> list[dict]:
+    """
+    Retrieve the top local IP addresses by packet count in a session.
+    Returns list[dict]: Each dict contains 'ip' and 'total' keys.
+    """
     query = (
         select(packet_table.c.src_ip, packet_table.c.dst_ip)
         .where(packet_table.c.session_id == session_id)
@@ -46,7 +92,11 @@ def top_10_ips(session_id: int, limit: int = 10) -> list[dict]:
     return [{'ip': ip, 'total': total} for ip, total in sorted_ips[:limit]]
 
 
-def protocol_breakdown(session_id: int) -> list[dict]:
+def _protocol_breakdown(session_id: int) -> list[dict]:
+    """
+    Count packets per protocol in a session.
+    Returns list[dict]: Each dict contains 'protocol' and 'total' keys.
+    """
     query = (
         select(packet_table.c.protocol, func.count().label('total'))
         .where(packet_table.c.session_id == session_id)
@@ -57,7 +107,13 @@ def protocol_breakdown(session_id: int) -> list[dict]:
     return [{'protocol': r[0], 'total': r[1]} for r in results]
 
 
-def packets_per_minute(session_id: int) -> list[dict]:
+def _packets_per_minute(session_id: int) -> list[dict]:
+    """
+    Count packets per minute for a session.
+    Uses strftime to group timestamps by minute.
+
+    Returns list[dict]: Each dict contains 'time' (YYYY-MM-DD HH:MM) and 'total'.
+    """
     minute = func.strftime('%Y-%m-%d %H:%M', packet_table.c.timestamp)
     query = (
         select(minute, func.count().label('packets_per_min'))
@@ -70,7 +126,11 @@ def packets_per_minute(session_id: int) -> list[dict]:
     return [{'time': r[0], 'total': r[1]} for r in results]
 
 
-def average_packet_size(session_id: int) -> float | None:
+def _average_packet_size(session_id: int) -> float | None:
+    """
+    Compute the average packet size for a session.
+    Returns average size in bytes, or None if no packets.
+    """
     query = (
         select(func.avg(packet_table.c.size))
         .where(packet_table.c.session_id == session_id)
@@ -79,7 +139,11 @@ def average_packet_size(session_id: int) -> float | None:
         return conn.execute(query).fetchone()[0]
     
 
-def active_hosts(session_id: int) -> int:
+def _active_hosts(session_id: int) -> int:
+    """
+    Count the number of unique local hosts in a session.
+    Returns number of unique local hosts.
+    """
     query = (
         select(packet_table.c.src_ip, packet_table.c.dst_ip)
         .where(packet_table.c.session_id == session_id)
@@ -99,12 +163,16 @@ def active_hosts(session_id: int) -> int:
     
 
 def get_all_stats(session_id: int, limit: int = 50) -> dict:
+    """
+    Retrieve all key statistics for a session.
+    Returns a dictionary with all necessary statistics.
+    """
     return {
-        'top_10_ips':          top_10_ips(session_id),
-        'protocol_breakdown':  protocol_breakdown(session_id),
-        'packets_per_minute':  packets_per_minute(session_id),
+        'top_10_ips':          _top_10_ips(session_id),
+        'protocol_breakdown':  _protocol_breakdown(session_id),
+        'packets_per_minute':  _packets_per_minute(session_id),
         'total_packets':       count_packets(session_id),
-        'average_packet_size': average_packet_size(session_id),
+        'average_packet_size': _average_packet_size(session_id),
         'recent_packets':      get_packets(session_id, limit),
-        'active_hosts':        active_hosts(session_id),
+        'active_hosts':        _active_hosts(session_id),
     }

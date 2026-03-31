@@ -1,3 +1,10 @@
+"""
+capture_manager.py
+
+Manages network packet capture in a dedicated thread, including session lifecycle
+and anomaly detection. Designed as a singleton to be shared across modules.
+"""
+
 import threading
 from datetime import datetime
 from anomaly import AnomalyDetector
@@ -15,19 +22,32 @@ class CaptureManager:
         self._session_id: int | None              = None
         self.detector:    AnomalyDetector         = AnomalyDetector()
 
-    # ── public state ──────────────────────────────────────────────────────────
+    # ── Public state ──────────────────────────────────────────────────────────
 
     @property
     def active_session_id(self) -> int | None:
+        """Returns the currently active session ID, or None if idle."""
         return self._session_id
 
     @property
     def is_running(self) -> bool:
+        """Indicates whether a capture session is currently running."""
         return self._session_id is not None
 
-    # ── lifecycle ─────────────────────────────────────────────────────────────
+    # ── Lifecycle ─────────────────────────────────────────────────────────────
 
     def start(self, session_id: int, packet_callback) -> dict:
+        """
+        Start a packet capture session on the configured interface.
+        
+        Args:
+            session_id: Identifier for the session.
+            packet_callback: Function called for each captured packet.
+
+        Returns:
+            dict with session start timestamp.
+        """
+
         if self.is_running:
             raise RuntimeError(f'Capture already running on session {self._session_id}')
 
@@ -51,6 +71,13 @@ class CaptureManager:
         return {'start_timestamp': datetime.now().isoformat()}
 
     def stop(self) -> dict:
+        """
+        Stop the currently running capture session.
+
+        Returns:
+            dict with stop timestamp and completed session ID.
+        """
+
         if not self.is_running:
             raise RuntimeError('No capture is currently running')
 
@@ -69,6 +96,6 @@ class CaptureManager:
         }
 
 
-# ── singleton ─────────────────────────────────────────────────────────────────
+# ── Singleton ─────────────────────────────────────────────────────────────────
 # Import this instance everywhere instead of instantiating a new one
 capture_manager = CaptureManager()

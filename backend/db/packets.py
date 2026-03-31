@@ -1,9 +1,16 @@
+"""
+db/packets.py
+───────────────────────────────────────────────────────────────────────────────
+Database operations for packet storage and retrieval.
+"""
+
 from sqlalchemy import insert, select, func
 from db import engine
 from db.models import packet_table
 
 
 def store_packet(packet: dict, session_id: int):
+    """Write a single captured packet to the database."""
     with engine.connect() as conn:
         conn.execute(insert(packet_table).values(
             session_id=session_id,
@@ -18,6 +25,16 @@ def store_packet(packet: dict, session_id: int):
 
 
 def get_packets(session_id: int, limit: int | None = 18, desc: bool = True) -> list[dict]:
+    """
+    Return packets for a session.
+
+    Args:
+        limit: max number of packets to return; None returns all
+        desc:  if True, orders by timestamp descending (most recent first)
+
+    Returns:
+        [{ src_ip, dst_ip, protocol, dst_port, size, timestamp }, ...]
+    """
     query = (
         select(packet_table)
         .where(packet_table.c.session_id == session_id)
@@ -46,6 +63,7 @@ def get_packets(session_id: int, limit: int | None = 18, desc: bool = True) -> l
 
 
 def count_packets(session_id: int) -> int:
+    """Return the total number of packets stored for a session."""
     query = (
         select(func.count())
         .select_from(packet_table)
