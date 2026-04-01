@@ -43,14 +43,9 @@ app = FastAPI(
 
 # ── CORS (only meaningful in DEV when Vite runs on a separate port) ───────────
 
-_DEFAULT_CORS_ORIGINS = [
-    'http://localhost:5173', 
-    'http://127.0.0.1:5173',
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins= CORS_ORIGINS or _DEFAULT_CORS_ORIGINS,
+    allow_origins= CORS_ORIGINS,
     allow_methods=['*'],
     allow_headers=['*'],
 )
@@ -72,12 +67,17 @@ app.include_router(ai_analysis.router,  prefix='/ai',        tags=['ai'])
 
 _STATIC_DIR = Path(__file__).parent / "static"
 
+print("Static dir:", _STATIC_DIR)
+print("Index exists:", (_STATIC_DIR / "index.html").is_file())
+
 if _STATIC_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=_STATIC_DIR, html=True), name="frontend")
+
     # Serve JS/CSS/image assets under /assets (Vite's default chunk dir)
-    app.mount("/assets", StaticFiles(directory=_STATIC_DIR / "assets"), name="assets")
+    app.mount('/assets', StaticFiles(directory=_STATIC_DIR / 'assets'), name='assets')
 
     # Serve any other static file that exists (favicon, etc.)
-    app.mount("/static", StaticFiles(directory=_STATIC_DIR), name="static-root")
+    app.mount('/static', StaticFiles(directory=_STATIC_DIR), name='static-root')
 
     @app.get("/{full_path:path}", include_in_schema=False)
     async def spa_fallback(full_path: str):
@@ -86,10 +86,15 @@ if _STATIC_DIR.is_dir():
         route or a real static file.  This is the standard SPA pattern so
         client-side routing works after a hard refresh.
         """
-        index = _STATIC_DIR / "index.html"
+        index = _STATIC_DIR / 'index.html'
         if index.is_file():
             return FileResponse(index)
         # Fallback: 404 if somehow no build exists
         from fastapi import HTTPException
-        raise HTTPException(status_code=404, detail="Frontend build not found.")
+        raise HTTPException(status_code=404, detail='Frontend build not found.')
 
+if __name__ == '__main__': 
+    import multiprocessing
+    multiprocessing.freeze_support()
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=8000, reload=False)
