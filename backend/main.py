@@ -23,6 +23,7 @@ the two modes.
 ───────────────────────────────────────────────────────────────────────────────
 """
 
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -65,7 +66,11 @@ app.include_router(ai_analysis.router,  prefix='/ai',        tags=['ai'])
 # The React build is emitted to backend/static/ by `npm run build`.
 # We mount it *after* the API routers so API paths always win.
 
-_STATIC_DIR = Path(__file__).parent / "static"
+if getattr(sys, "frozen", False):
+    # running as exe — static files are in _internal/backend/static
+    _STATIC_DIR = Path(sys._MEIPASS) / "backend" / "static"
+else:
+    _STATIC_DIR = Path(__file__).parent / "static"
 
 print("Static dir:", _STATIC_DIR)
 print("Index exists:", (_STATIC_DIR / "index.html").is_file())
