@@ -84,9 +84,10 @@ def start(session_id: int) -> dict:
             record_packet(src, dst, size)
 
             # Run rule-based anomaly detection; persist any alerts immediately.
-            for alert in capture_manager.detector.analyze_packet(pkt):
+            alerts = capture_manager.detector.analyze_packet(pkt)
+            for alert in alerts:
                 save_alert(alert, session_id)
-        except Exception:
+        except Exception as e:
             return
 
     result = capture_manager.start(session_id, _on_packet)

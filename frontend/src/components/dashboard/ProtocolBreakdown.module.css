@@ -1,7 +1,7 @@
 /* ─── panel container ─────────────────────────────── */
 .panel {
-    background: #0d1220;
-    border: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border: 0.5px solid var(--border);
     border-radius: 8px;
     padding: 0.875rem 1rem;
     font-family: monospace;
@@ -10,7 +10,7 @@
 /* ─── section heading ─────────────────────────────── */
 .title {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 0.75rem;
@@ -36,12 +36,12 @@
     align-items: center;
     gap: 8px;
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .legendItemTotal {
     margin-top: 4px;
-    border-top: 0.5px solid #1e2a40;
+    border-top: 0.5px solid var(--border);
     padding-top: 6px;
 }
 
@@ -56,7 +56,7 @@
 /* packet count value */
 .val {
     margin-left: auto;
-    color: #e2e8f0;
+    color: var(--text-primary);
     font-weight: 500;
     padding-left: 12px;
 }
@@ -64,16 +64,16 @@
 /* empty state */
 .empty {
     font-size: 11px;
-    color: #546e8a;
+    color: var(--text-muted);
 }
 
 /* ─── recharts tooltip ────────────────────────────── */
 .customTooltip {
-    background: #0d1220;
-    border: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border: 0.5px solid var(--border);
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 11px;
     font-family: monospace;
-    color: #e2e8f0;
+    color: var(--text-primary);
 }

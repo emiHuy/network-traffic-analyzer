@@ -1,7 +1,7 @@
 /* ─── panel container ─────────────────────────────── */
 .panel {
-    background: #0d1220;
-    border: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border: 0.5px solid var(--border);
     border-radius: 8px;
     padding: 0.875rem 1rem;
     font-family: monospace;
@@ -10,7 +10,7 @@
 /* ─── section heading ─────────────────────────────── */
 .title {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 0.75rem;
@@ -27,7 +27,7 @@
 /* IP address label */
 .ip {
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--text-secondary);
     width: 130px;
     flex-shrink: 0;
     overflow: hidden;
@@ -38,7 +38,7 @@
 /* background track for bar — filled by inline style */
 .barWrap {
     flex: 1;
-    background: #151d2e;
+    background: var(--bg-surface);
     border-radius: 2px;
     height: 4px;
 }
@@ -47,18 +47,18 @@
 /* active variant highlights top IP */
 .count {
     font-size: 11px;
-    color: #546e8a;
+    color: var(--text-muted);
     width: 36px;
     text-align: right;
     flex-shrink: 0;
 }
 
 .countFirst { 
-    color: #4fc3f7; 
+    color: var(--accent-blue); 
 }
 
 /* empty state */
 .empty {
     font-size: 11px;
-    color: #546e8a;
+    color: var(--text-muted);
 }

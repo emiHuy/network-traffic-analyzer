@@ -19,36 +19,12 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import styles from './PacketSearch.module.css';
+
+import ProtoBadge from '../ui/ProtoBadge';
+import { formatTimestamp } from '../../utils/format';
 import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
 
-// formats ISO timestamp to HH:MM:SS.mmm; returns '—' for missing values
-function formatTimestamp(ts) {
-  if (!ts) return '—';
-  try {
-    const d = new Date(ts);
-    return d.toLocaleTimeString('en-CA', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      fractionalSecondDigits: 3,
-      hour12: false,
-    });
-  } catch {
-    return ts;
-  }
-}
-
-// coloured protocol badge — falls back to the UNK colour if unrecognised
-function ProtoBadge({ protocol }) {
-  const name = typeof protocol === 'number' ? (PROTO_NAMES[protocol] ?? 'UNK') : (protocol ?? 'UNK');
-  const color = PROTO_COLOURS[name] ?? PROTO_COLOURS['UNK'];
-  return (
-    <span className={styles.badge} style={{ color, background: `${color}1f` }}>
-      {name}
-    </span>
-  );
-}
+import styles from './PacketSearch.module.css';
 
 // returns true if a packet passes the global query and all per-field filters;
 // global search joins all fields into a single haystack for a substring match

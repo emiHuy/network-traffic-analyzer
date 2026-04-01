@@ -79,14 +79,14 @@ Built with **Scapy**, **FastAPI**, and **React + Vite**.
 │   │   ├── sessions.py
 │   │   └── websocket.py
 │   ├── services
+│   │   ├── anomaly.py
 │   │   ├── capture.py
 │   │   ├── export.py
+│   │   ├── network_scan.py
 │   │   ├── stats.py
 │   │   └── topology.py
 │   ├── .env.example
-│   ├── anomaly.py
 │   ├── main.py
-│   ├── network_scan.py
 │   └── requirements.txt
 ├── frontend
 │   ├── public
@@ -104,8 +104,8 @@ Built with **Scapy**, **FastAPI**, and **React + Vite**.
 │   │   │   ├── dashboard
 │   │   │   │   ├── Dashboard.jsx
 │   │   │   │   ├── Dashboard.module.css
-│   │   │   │   ├── MetricCards.module.css
 │   │   │   │   ├── MetricsCards.jsx
+│   │   │   │   ├── MetricsCards.module.css
 │   │   │   │   ├── PacketFeed.jsx
 │   │   │   │   ├── PacketFeed.module.css
 │   │   │   │   ├── PacketSearch.jsx
@@ -125,11 +125,16 @@ Built with **Scapy**, **FastAPI**, and **React + Vite**.
 │   │   │   │   ├── NetworkGraph.jsx
 │   │   │   │   └── NetworkGraph.module.css
 │   │   │   └── ui
+│   │   │       ├── ProtoBadge.jsx
+│   │   │       ├── ProtoBadge.module.css
 │   │   │       ├── Toast.module.css
 │   │   │       ├── ToastContainer.jsx
 │   │   │       └── ToastContext.jsx
 │   │   ├── constants
+│   │   │   ├── colors.js
 │   │   │   └── protocols.js
+│   │   ├── utils
+│   │   │   └── format.js
 │   │   ├── App.jsx
 │   │   ├── App.module.css
 │   │   ├── index.css

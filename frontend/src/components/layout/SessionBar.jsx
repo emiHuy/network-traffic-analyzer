@@ -20,20 +20,8 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+import { formatDay } from '../../utils/format';
 import styles from './SessionBar.module.css';
-
-/** Formats a timestamp for display, fallback to '—' */
-function formatTimestamp(ts) {
-  if (!ts) return '—';
-  try {
-    return new Date(ts).toLocaleDateString('en-CA', {
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return ts;
-  }
-}
 
 export default function SessionBar({ sessions = [], activeSessionId, onSelect, onCreate, onDelete, onExport, isCapturing }) {
   const [open, setOpen] = useState(false);     // dropdown open state
@@ -106,7 +94,7 @@ export default function SessionBar({ sessions = [], activeSessionId, onSelect, o
                     <span className={`${styles.itemName} ${sess.id === activeSessionId ? styles.itemNameActive : ''}`}>
                       {sess.name}
                     </span>
-                    <span className={styles.itemMeta}>{sess.packet_count ?? 0} pkts · {formatTimestamp(sess.created_at)}</span>
+                    <span className={styles.itemMeta}>{sess.packet_count ?? 0} pkts · {formatDay(sess.created_at)}</span>
                   </div>
                   <button
                     className={styles.delBtn}

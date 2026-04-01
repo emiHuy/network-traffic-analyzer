@@ -11,24 +11,8 @@
  *   @prop {number}   sessionId - Used to differentiate empty-state messages.
  */
 
+import { formatTimestamp } from '../../utils/format';
 import styles from './AlertsPanel.module.css';
-
-// formats ISO timestamp to HH:MM:SS.mmm; returns '—' for missing values
-function formatTimestamp(ts) {
-  if (!ts) return '—';
-  try {
-    const d = new Date(ts);
-    return d.toLocaleTimeString('en-CA', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      fractionalSecondDigits: 3,
-      hour12: false,
-    });
-  } catch {
-    return ts; 
-  }
-}
 
 // single alert card — left border colour and severity badge vary by severity level
 function AlertCard({ alert }) {

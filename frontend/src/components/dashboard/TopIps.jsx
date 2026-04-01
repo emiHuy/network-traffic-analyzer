@@ -10,10 +10,11 @@
  *                           each entry shaped as { ip: string, total: number }.
  */
 
+import { COLOURS } from '../../constants/colors';
 import styles from './TopIps.module.css';
 
 // bar colors cycle through accent palette by rank
-const BAR_COLORS = ["#4fc3f7", "#4fc3f7", "#a78bfa", "#a78bfa", "#22c55e", "#22c55e", "#f59e0b", "#f59e0b", "#f59e0b", "#f59e0b"];
+const BAR_COLORS = [COLOURS.accentBlue, COLOURS.accentBlue, COLOURS.accentPurple,  COLOURS.accentPurple, COLOURS.accentGreen, COLOURS.accentGreen, COLOURS.accentAmber, COLOURS.accentAmber, COLOURS.accentAmber, COLOURS.accentAmber];
 
 export default function TopIPs({ data = [] }) {
   // max value used to calculate bar widths as percentage
@@ -38,7 +39,7 @@ export default function TopIPs({ data = [] }) {
               style={{
                 height: "4px",
                 borderRadius: "2px",
-                background: BAR_COLORS[i] ?? "#546e8a",
+                background: BAR_COLORS[i] ?? COLOURS.textMuted,
                 width: `${Math.round((row.total / max) * 100)}%`,
                 transition: "width 0.4s ease",
               }}

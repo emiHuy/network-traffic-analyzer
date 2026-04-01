@@ -12,7 +12,7 @@
     width: 100vw;
     height: 100vh;
     backdrop-filter: blur(1px); /* glassy blur */
-    background: rgba(13, 18, 32, 0.6); /* semi-transparent dark */
+    background: rgba(var(--bg-panel-rgb), 0.6); /* semi-transparent dark */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -21,8 +21,8 @@
 
 /* ─── scanning box ───────────────────────────────── */
 .scanningBox {
-    background: rgba(30, 42, 64, 0.3); 
-    color: #4fc3f7; /* accent color for scanning text */
+    background: rgba(var(--bg-surface-rgb), 0.5); 
+    color: var(--accent-blue); /* accent color for scanning text */
     padding: 1rem 2rem;
     border-radius: 12px;
     font-family: monospace;
@@ -38,8 +38,8 @@
     content: "";
     width: 16px;
     height: 16px;
-    border: 3px solid rgba(79, 195, 247, 0.3);
-    border-top: 3px solid #4fc3f7;
+    border: 3px solid rgba(var(--accent-blue-rgb), 0.3);
+    border-top: 3px solid var(--accent-blue);
     border-radius: 50%;
     display: inline-block;
     animation: spin 1s linear infinite;

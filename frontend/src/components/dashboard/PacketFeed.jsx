@@ -22,47 +22,15 @@
  */
 
 import { useState } from 'react';
-import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
+
+import ProtoBadge from '../ui/ProtoBadge';
+import { formatTimestamp } from '../../utils/format';
 import styles from './PacketFeed.module.css';
 
 /** Number of rows shown when the feed is collapsed. */
 const COLLAPSED_LIMIT = 6;
 
-// coloured protocol badge — falls back to 'UNK' if the protocol is unrecognised
-function ProtoBadge({ protocol }) {
-  const name = typeof protocol === 'number' ? (PROTO_NAMES[protocol] ?? 'UNK') : (protocol ?? 'UNK');
-  const colour = PROTO_COLOURS[name];
-  return (
-    <span 
-      className={`${styles.badge}`} 
-      style={{
-        color: colour,
-        background: `${colour}1a`, // 1a = 10% opacity
-      }}
-    >
-      {name}
-    </span>
-  );
-}
-
-// formats ISO timestamp to HH:MM:SS.mmm; returns '—' for missing values
-function formatTimestamp(ts) {
-  if (!ts) return '—';
-  try {
-    const d = new Date(ts);
-    return d.toLocaleTimeString('en-CA', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      fractionalSecondDigits: 3,
-      hour12: false,
-    });
-  } catch {
-    return ts;
-  }
-}
-
-export default function PacketFeed({ data = [], limit = 18, sessionId, onSearch}) {
+export default function PacketFeed({ data = [], limit = 18, onSearch}) {
   const [collapsed, setCollapsed] = useState(false);
   
   // slice to COLLAPSED_LIMIT when collapsed, otherwise respect the limit prop

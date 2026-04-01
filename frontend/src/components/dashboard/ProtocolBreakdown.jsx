@@ -8,6 +8,7 @@
  */
 
 import { PieChart, Pie, Tooltip, ResponsiveContainer } from 'recharts';
+import { COLOURS } from '../../constants/colors';
 import { PROTO_NAMES, PROTO_COLOURS } from '../../constants/protocols';
 import styles from './ProtocolBreakdown.module.css';
 
@@ -68,7 +69,7 @@ export default function ProtocolBreakdown({ data = [] }) {
 
             {/* total row with top border divider */}
             <div className={`${styles.legendItem} ${styles.legendItemTotal}`}>
-              <span style={{ color: "#546e8a" }}>total</span>
+              <span style={{ color: COLOURS.textMuted }}>total</span>
               <span className={styles.val}>{total}</span>
             </div>
           </div>

@@ -13,53 +13,33 @@
  */
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { formatBytes, formatSince } from '../../utils/format';
+import { COLOURS } from '../../constants/colors';
 import styles from './NetworkGraph.module.css';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 // Returns node color for live capture state.
-function nodeColor(device, isCapturing) {
-    if (isCapturing) {
-        // during capture: colour by recency
-        const ago = secondsSince(device.last_seen);
-        if (ago < 30)  return '#22c55e';
-        if (ago < 300) return '#f59e0b';
-        return '#475569';
-    } else {
-        // post capture: colour by volume tier
-        return '#475569'; // default — overridden per device below
-    }
+function nodeColor(device) {
+    const ago = secondsSince(device.last_seen);
+    if (ago < 30)  return COLOURS.accentGreen;
+    if (ago < 300) return COLOURS.accentAmber;
+    return COLOURS.nodeIdle;
 }
 
 // Returns node color after capture based on bytes seen.
 function postCaptureColor(device, maxBytes) {
-    if (maxBytes === 0 || !device.bytes_seen) return '#475569';
+    if (maxBytes === 0 || !device.bytes_seen) return COLOURS.nodeIdle;
     const ratio = device.bytes_seen / maxBytes;
-    if (ratio >= 0.5) return '#22c55e';
-    if (ratio >= 0.2) return '#f59e0b';
-    return '#769acd';
+    if (ratio >= 0.5) return COLOURS.accentGreen;
+    if (ratio >= 0.2) return COLOURS.accentAmber;
+    return COLOURS.nodeLow;
 }
 
 /** Returns seconds elapsed since ISO timestamp. */
 function secondsSince(isoString) {
     if (!isoString) return 9999;
     return (Date.now() - new Date(isoString).getTime()) / 1000;
-}
-
-/** Formats bytes for display. */
-function formatBytes(bytes) {
-    if (bytes >= 1e6) return (bytes / 1e6).toFixed(1) + ' MB';
-    if (bytes >= 1e3) return Math.round(bytes / 1e3) + ' KB';
-    return bytes + ' B';
-}
-
-/** Formats a timestamp into human-readable "ago" string. */
-function formatSince(isoString) {
-    if (!isoString) return '—';
-    const secs = Math.round(secondsSince(isoString));
-    if (secs < 60)   return secs + 's ago';
-    if (secs < 3600) return Math.round(secs / 60) + ' min ago';
-    return Math.round(secs / 3600) + 'hr ago';
 }
 
 /** Determines if a device is a router based on IP or manufacturer. */
@@ -82,7 +62,6 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
     const rafRef     = useRef(null);
     const tickRef    = useRef(0);
     const nodesRef   = useRef([]);           // positioned nodes (includes x, y)
-    const tooltipRef = useRef(null);
     const [tooltip, setTooltip] = useState(null); // { x, y, device }
 
     // ── layout: place router at centre, devices on ring ───────────────────────
@@ -134,7 +113,7 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
 
         if (!positioned.length) {
             // empty state
-            ctx.fillStyle = '#546e8a';
+            ctx.fillStyle = COLOURS.textMuted;
             ctx.font = '11px monospace';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -149,7 +128,7 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
         // draw edges
         positioned.filter(d => !d.isRouter).forEach(d => {
             const color = isCapturing
-                ? nodeColor(d, true)
+                ? nodeColor(d)
                 : postCaptureColor(d, maxBytes);
             const edgeW = 0.5 + 3.5 * (maxBytes > 0 ? Math.sqrt((d.bytes_seen || 0) / maxBytes) : 0.1);
 
@@ -175,7 +154,7 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
         positioned.forEach(d => {
             const r     = getRadius(d, maxBytes);
             const color = isCapturing
-                ? nodeColor(d, true)
+                ? nodeColor(d)
                 : postCaptureColor(d, maxBytes);
 
             // pulse ring for active nodes during capture
@@ -228,7 +207,7 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
         const ctx = canvas.getContext('2d');
         ctx.scale(dpr, dpr);
         nodesRef.current = layoutNodes(nodes, W, H);
-    }, [nodes, nodes.length, layoutNodes, isVisible]);
+    }, [nodes, layoutNodes, isVisible]);
 
     // ── animation loop ────────────────────────────────────────────────────────
     useEffect(() => {
@@ -316,7 +295,6 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
                 {/* tooltip */}
                 {tooltip && (
                     <div
-                        ref={tooltipRef}
                         className={styles.tooltip}
                         style={{
                             left: tooltip.x + 14,
@@ -342,23 +320,28 @@ export default function NetworkGraph({ nodes = [], isVisible, isCapturing, onSca
             <div className={styles.infoBar}>
                 <div className={styles.legend}>
                     <span className={styles.legendItem}>
-                        <span className={styles.legendDot} style={{ background: '#22c55e' }} />
+                        <span className={styles.legendDot} style={{ background: COLOURS.accentGreen }} />
                         {isCapturing ? 'active <30s' : 'high traffic'}
                     </span>
                     <span className={styles.legendItem}>
-                        <span className={styles.legendDot} style={{ background: '#f59e0b' }} />
+                        <span className={styles.legendDot} style={{ background: COLOURS.accentAmber }} />
                         {isCapturing ? 'recent <5min' : 'medium traffic'}
                     </span>
+                    {!isCapturing && <span className={styles.legendItem}>
+                        <span className={styles.legendDot} style={{ background: COLOURS.nodeLow }} />
+                        low traffic
+                    </span>}
                     <span className={styles.legendItem}>
-                        <span className={styles.legendDot} style={{ background: '#475569' }} />
+                        <span className={styles.legendDot} style={{ background: COLOURS.nodeIdle }} />
                         idle
                     </span>
-                    <span className={styles.legendMuted}>
-                        {isCapturing ? 'edge thickness = current traffic. ' : 'node size = session total. '}
-                        {'Internal traffic is counted for both sender and receiver.'}
-                    </span>
                 </div>
+            <div className={styles.infoFooter}>
+                <span className={styles.legendMuted}>
+                    {isCapturing ? 'edge thickness = current traffic' : 'node size = session total'} · internal traffic counted for both sender and receiver
+                </span>
                 <span className={styles.lastScan}>{lastScanLabel}</span>
+            </div>
             </div>
         </div>
     );

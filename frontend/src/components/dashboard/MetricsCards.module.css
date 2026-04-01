@@ -9,15 +9,15 @@
 
 /* ─── card ────────────────────────────────────────── */
 .card {
-    background: #0d1220;
-    border: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border: 0.5px solid var(--border);
     border-radius: 8px;
     padding: 0.75rem 1rem;
 }
 
 .label {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 4px;
@@ -30,12 +30,12 @@
 
 .sub {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
     margin-top: 2px;
 }
 
 /* ─── accent colors ───────────────────────────────── */
-.accentBlue   { color: #4fc3f7; }
-.accentGreen  { color: #22c55e; }
-.accentAmber  { color: #f59e0b; }
-.accentPurple { color: #a78bfa; }
+.accentBlue   { color: var(--accent-blue); }
+.accentGreen  { color: var(--accent-green); }
+.accentAmber  { color: var(--accent-amber);}
+.accentPurple { color: var(--accent-purple); }

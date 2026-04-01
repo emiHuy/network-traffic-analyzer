@@ -52,7 +52,6 @@ export default function Dashboard({ isVisible, stats, sessionId, fetchAllPackets
       {/* scrollable live packet table; search button sets searching = true */}
       <PacketFeed 
         data={stats?.recent_packets} 
-        sessionId={sessionId} 
         onSearch={setSearching}
       />
 

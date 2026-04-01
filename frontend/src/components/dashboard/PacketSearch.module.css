@@ -8,13 +8,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    scrollbar-color: #546e8a #0d1220;
+    scrollbar-color: var(--text-muted) var(--bg-panel);
 }
 
 /* ─── modal ───────────────────────────────────────── */
 .modal {
-    background: #0d1220;
-    border: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border: 0.5px solid var(--border);
     border-radius: 10px;
     width: 860px;
     max-width: 95vw;
@@ -31,13 +31,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    border-bottom: 0.5px solid #1e2a40;
+    border-bottom: 0.5px solid var(--border);
     flex-shrink: 0;
 }
 
 .title {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
@@ -50,7 +50,7 @@
 
 .count {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
 }
 
 .closeBtn {
@@ -75,7 +75,7 @@
     align-items: center;
     gap: 8px;
     padding: 0.75rem 1rem;
-    border-bottom: 0.5px solid #1e2a40;
+    border-bottom: 0.5px solid var(--border);
     flex-shrink: 0;
 }
 
@@ -85,14 +85,14 @@
     font-size: 12px;
     padding: 6px 10px;
     border-radius: 5px;
-    border: 0.5px solid #1e2a40;
-    background: #151d2e;
-    color: #e2e8f0;
+    border: 0.5px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-primary);
     outline: none;
 }
 
 .globalInput:focus {
-    border-color: #4fc3f7;
+    border-color: var(--accent-blue);
 }
 
 .fieldToggle {
@@ -100,16 +100,16 @@
     font-size: 10px;
     padding: 5px 10px;
     border-radius: 4px;
-    border: 0.5px solid #1e2a40;
+    border: 0.5px solid var(--border);
     background: transparent;
-    color: #546e8a;
+    color: var(--text-muted);
     cursor: pointer;
     letter-spacing: 0.05em;
 }
 
 .fieldToggle:hover, .fieldToggleActive {
-    border-color: #4fc3f7;
-    color: #4fc3f7;
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
     background: rgba(79, 195, 247, 0.05);
 }
 
@@ -118,16 +118,16 @@
     font-size: 10px;
     padding: 5px 10px;
     border-radius: 4px;
-    border: 0.5px solid #1e2a40;
+    border: 0.5px solid var(--border);
     background: transparent;
-    color: #546e8a;
+    color: var(--text-muted);
     cursor: pointer;
     letter-spacing: 0.05em;
 }
 
 .clearBtn:hover {
-    border-color: #ef4444;
-    color: #ef4444;
+    border-color: var(--accent-red);
+    color: var(--accent-red);
     background: rgba(241, 40, 40, 0.05);
 }
 
@@ -136,7 +136,7 @@
     display: flex;
     gap: 8px;
     padding: 0.6rem 1rem;
-    border-bottom: 0.5px solid #1e2a40;
+    border-bottom: 0.5px solid var(--border);
     flex-shrink: 0;
     flex-wrap: wrap;
 }
@@ -151,7 +151,7 @@
 
 .fieldLabel {
     font-size: 9px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
 }
@@ -161,14 +161,14 @@
     font-size: 11px;
     padding: 5px 8px;
     border-radius: 4px;
-    border: 0.5px solid #1e2a40;
-    background: #151d2e;
-    color: #94a3b8;
+    border: 0.5px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
     outline: none;
 }
 
 .fieldInput:focus {
-    border-color: #4fc3f7;
+    border-color: var(--accent-blue);
 }
 
 .fieldSelect {
@@ -176,16 +176,16 @@
     font-size: 11px;
     padding: 5px 8px;
     border-radius: 4px;
-    border: 0.5px solid #1e2a40;
-    background: #151d2e;
-    color: #94a3b8;
+    border: 0.5px solid var(--border);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
     outline: none;
     cursor: pointer;
     width: 100%;
 }
 
 .fieldSelect:focus {
-    border-color: #4fc3f7;
+    border-color: var(--accent-blue);
 }
 
 /* ─── table ───────────────────────────────────────── */
@@ -203,13 +203,13 @@
 .table thead tr {
     position: sticky;
     top: 0;
-    background: #0d1220;
-    border-bottom: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border-bottom: 0.5px solid var(--border);
 }
 
 .table th {
     font-size: 9px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding: 8px 1rem;
@@ -231,7 +231,7 @@
 
 .table td {
     padding: 5px 1rem;
-    color: #94a3b8;
+    color: var(--text-secondary);
 }
 
 .cell {
@@ -242,21 +242,13 @@
 }
 
 .ts {
-    color: #546e8a;
-}
-
-/* ─── badge ───────────────────────────────────────── */
-.badge {
-    font-size: 9px;
-    font-weight: 500;
-    padding: 2px 6px;
-    border-radius: 3px;
+    color: var(--text-muted);
 }
 
 /* ─── empty state ─────────────────────────────────── */
 .empty {
     font-size: 11px;
-    color: #546e8a;
+    color: var(--text-muted);
     padding: 2rem 1rem;
     text-align: center;
 }

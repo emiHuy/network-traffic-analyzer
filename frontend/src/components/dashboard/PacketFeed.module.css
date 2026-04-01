@@ -1,7 +1,7 @@
 /* ─── panel container ─────────────────────────────── */
 .panel {
-    background: #0d1220;
-    border: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border: 0.5px solid var(--border);
     border-radius: 8px;
     padding: 0.875rem 1rem;
     font-family: monospace;
@@ -10,7 +10,7 @@
 /* ─── section heading ─────────────────────────────── */
 .title {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 0.75rem;
@@ -31,7 +31,7 @@
 
 .packetCount {
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
 }
 
 /* ─── table ───────────────────────────────────────── */
@@ -41,11 +41,11 @@
     grid-template-columns: 1fr 1fr 80px 70px 160px;
     gap: 8px;
     font-size: 10px;
-    color: #546e8a;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     padding-bottom: 6px;
-    border-bottom: 0.5px solid #1e2a40;
+    border-bottom: 0.5px solid var(--border);
     margin-bottom: 6px;
 }
 
@@ -54,7 +54,7 @@
     grid-template-columns: 1fr 1fr 80px 70px 160px;
     gap: 8px;
     font-size: 11px;
-    color: #94a3b8;
+    color: var(--text-secondary);
     padding: 5px 0;
     border-bottom: 0.5px solid #111827;
 }
@@ -63,9 +63,9 @@
 .collapseBtn {
     font-size: 9px;
     font-family: monospace;
-    color: #546e8a;
+    color: var(--text-muted);
     background: transparent;
-    border: 0.5px solid #1e2a40;
+    border: 0.5px solid var(--border);
     border-radius: 3px;
     padding: 2px 8px;
     cursor: pointer;
@@ -73,8 +73,8 @@
 }
 
 .collapseBtn:hover {
-    color: #4fc3f7;
-    border-color: #4fc3f7;
+    color: var(--accent-blue);
+    border-color: var(--accent-blue);
 }
 
 /* removes divider from last row */
@@ -87,13 +87,13 @@
 }
 
 .timestamp {
-    color: #546e8a;
+    color: var(--text-muted);
 }
 
 /* ─── empty state ─────────────────────────────────── */
 .empty {
     font-size: 11px;
-    color: #546e8a;
+    color: var(--text-muted);
     padding: 8px 0;
 }
 
@@ -108,13 +108,13 @@
 }
 
 .more:hover {
-    color: #4fc3f7;
+    color: var(--accent-blue);
 }
 
 /* ─── arrows ─────────────────────────────────── */
 .arrow {
     font-size: 8px;
-    color: #546e8a;
+    color: var(--text-muted);
     display: inline-block;
     transition: transform 0.2s ease;
 }

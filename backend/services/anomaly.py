@@ -41,7 +41,7 @@ from db.packets import get_packets
 # ── Tunable thresholds ─────────────────────────────────────────────────────────
 
 # Max packets a single source IP may send within HIGH_VOLUME_WINDOW seconds
-HIGH_VOLUME_LIMIT    = 350   
+HIGH_VOLUME_LIMIT    = 500   
 HIGH_VOLUME_WINDOW   = 60    # seconds
 
 # Max unique destination ports a source may probe on one host before triggering
@@ -150,8 +150,7 @@ class AnomalyDetector:
         cutoff = now - timedelta(seconds=HIGH_VOLUME_WINDOW)
 
         # Evict timestamps that have fallen outside the sliding window.
-        window = self._volume_window[src]
-        self._volume_window[src] = [t for t in window[src] if t >= cutoff]
+        self._volume_window[src] = [t for t in self._volume_window[src] if t >= cutoff]
         self._volume_window[src].append(now)
 
         count = len(self._volume_window[src])
@@ -180,8 +179,7 @@ class AnomalyDetector:
         cutoff  = now - timedelta(seconds=PORT_SCAN_WINDOW)
 
         # Evict stale entries for this src→dst pair.
-        attempts = self._port_attempts[src][dst]
-        self._port_attempts[src][dst] = [(p, t) for p, t in attempts[src][dst] if t >= cutoff]
+        self._port_attempts[src][dst] = [(p, t) for p, t in self._port_attempts[src][dst] if t >= cutoff]
         self._port_attempts[src][dst].append((dst_port, now))
 
         unique_ports = {p for p, _ in self._port_attempts[src][dst]}

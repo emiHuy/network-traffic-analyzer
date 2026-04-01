@@ -4,8 +4,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 0.75rem 1rem;
-    background: #0d1220;
-    border: 0.5px solid #1e2a40;
+    background: var(--bg-panel);
+    border: 0.5px solid var(--border);
     border-radius: 8px;
     margin-bottom: 6px;
     font-family: monospace;
@@ -15,14 +15,14 @@
 .logo {
     font-size: 13px;
     font-weight: 500;
-    color: #4fc3f7;
+    color: var(--accent-blue);
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
 /* muted suffix of logo text */
 .logoMuted {
-    color: #546e8a;
+    color: var(--text-muted);
 }
 
 /* ─── capture status + timer ──────────────────────── */
@@ -31,7 +31,7 @@
     align-items: center;
     gap: 12px;
     font-size: 11px;
-    color: #546e8a;
+    color: var(--text-muted);
 }
 
 /* animated dot shown while capturing */
@@ -39,7 +39,7 @@
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: #22c55e;
+    background: var(--accent-green);
     display: inline-block;
     margin-right: 5px;
     animation: pulse 1.5s infinite;
@@ -48,7 +48,7 @@
 /* elapsed capture time display */
 .timer {
     font-size: 13px;
-    color: #e2e8f0;
+    color: var(--text-primary);
     font-weight: 500;
     letter-spacing: 0.05em;
 }
@@ -72,9 +72,9 @@
 }
 
 .btnStart {
-    background: rgba(34, 197, 94, 0.1);
-    border-color: #22c55e;
-    color: #22c55e;
+    background: rgba(var(--accent-green-rgb), 0.1);
+    border-color: var(--accent-green);
+    color: var(--accent-green);
 }
 
 .btnStart:hover {
@@ -83,9 +83,9 @@
 }
 
 .btnStop {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: #ef4444;
-    color: #ef4444;
+    background: rgba(var(--accent-red-rgb), 0.1);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
 }
 
 .btnStop:hover {
