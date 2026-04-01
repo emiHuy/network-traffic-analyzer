@@ -94,6 +94,7 @@ Open **http://localhost:8000**.
 ## 📦 Building the Executable
 
 ```bash
+pip install pyinstaller pillow pystray
 python build.py
 ```
 
