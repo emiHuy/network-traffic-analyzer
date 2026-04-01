@@ -171,3 +171,9 @@ Built with [Scapy](https://scapy.net/), [FastAPI](https://fastapi.tiangolo.com/)
 Network manufacturer lookup via [manuf](https://github.com/coolbho3k/manuf).  
 Charts via [Recharts](https://recharts.org/).  
 AI analysis powered by [Google Gemini](https://aistudio.google.com/).
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
