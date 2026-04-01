@@ -1,6 +1,4 @@
-# NETAnalyzer <img src="frontend/public/favicon.svg" alt="Architecture Diagram" style="max-width: 35px; vertical-align: bottom; padding: 0; margin: 0;"> 
-
-
+# NETAnalyzer 
 
 A live network packet capture and analysis tool — built with **Scapy**, **FastAPI**, and **React**.
 
@@ -120,9 +118,9 @@ Copy `backend/.env.example` to `backend/.env`:
 
 ## 🏗️ Architecture
 
-<div style="text-align: center;">
-    <img src="assets/architecture.svg" alt="Architecture Diagram" style="max-width: 700px; width: 100%;">
-</div>
+<p align="center">
+    <img src="assets/architecture.svg" alt="Architecture Diagram" width="600">
+</p>
 
 **Stats** are computed via SQL on the packet table — no in-memory aggregation — so they're accurate and survive restarts. The exception is per-device counters (`bytes_seen`, `packet_count`, `last_seen`), which are maintained in memory during capture and flushed to the DB on stop.
 
