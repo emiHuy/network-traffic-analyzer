@@ -19,14 +19,15 @@
  *   @prop {number}   numAlerts    - Number of active alerts (shown as badge).
  */
 
+import { COLOURS  } from '../../constants/colors';
 import styles from './NavBar.module.css';
 
 // accent colors for tab indicators (by view)
 const TAB_INDICATORS = {
-    dashboard: '#22c55e',  // green — capturing
-    network:   '#f59e0b',  // amber — passive sniffer
-    alerts:    '#f45757',
-    analysis:  '#a78bfa',
+    dashboard: COLOURS.accentGreen,  // green — capturing
+    network:   COLOURS.accentAmber,  // amber — passive sniffer
+    alerts:    COLOURS.accentRed,
+    analysis:  COLOURS.accentPurple,
 };
 
 export default function NavBar( { activeView, onViewChange, isCapturing, sessionId, numAlerts }) {
