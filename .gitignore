@@ -9,6 +9,11 @@ __pycache__/
 netanalyzer.db
 .env
 
+# PyInstaller
+NETAnalyzer.spec
+build/
+dist/
+
 # Logs
 logs
 *.log
@@ -19,6 +24,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+static
 dist
 dist-ssr
 *.local

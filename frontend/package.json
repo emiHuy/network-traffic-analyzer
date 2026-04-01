@@ -25,9 +25,9 @@
     "globals": "^17.4.0",
     "vite": "^8.0.0"
   },
-  "description": "",
+  "description": "A Python-based network traffic analyzer that captures live packets, stores them in a SQLite database, and displays real-time stats through a React web dashboard.",
   "main": "eslint.config.js",
   "keywords": [],
-  "author": "",
+  "author": "Emily (https://github.com/emiHuy)",
   "license": "ISC"
 }
