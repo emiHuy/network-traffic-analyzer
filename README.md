@@ -18,6 +18,30 @@ A live network packet capture and analysis tool — built with **Scapy**, **Fast
 
 ---
 
+## 📸 Screenshots
+
+<h3 align="center">Dashboard</h3>
+<p align="center">
+  <img src="assets/screenshots/dashboard.jpg" width="700" alt="Dashboard">
+</p>
+
+<h3 align="center">Network Map</h3>
+<p align="center"><em>Post-capture topology — node size scales with total traffic, router auto-detected at centre</em></p>
+<p align="center">
+  <img src="assets/screenshots/network.jpg" width="700" alt="Network">
+</p>
+
+<h3 align="center">Alerts</h3>
+<p align="center">
+  <img src="assets/screenshots/alerts.jpg" width="700" alt="Alerts">
+</p>
+
+<h3 align="center">AI Analysis</h3>
+<p align="center">
+  <img src="assets/screenshots/analysis.jpg" width="700" alt="AI Analysis">
+</p>
+---
+
 ## ⚙️ Requirements
 
 - **Npcap** installed in WinPcap compatibility mode (Windows)
